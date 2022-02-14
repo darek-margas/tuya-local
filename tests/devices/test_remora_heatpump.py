@@ -1,3 +1,4 @@
+from homeassistant.components.binary_sensor import DEVICE_CLASS_PROBLEM
 from homeassistant.components.climate.const import (
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
@@ -8,6 +9,8 @@ from homeassistant.const import STATE_UNAVAILABLE
 
 from ..const import REMORA_HEATPUMP_PAYLOAD
 from ..helpers import assert_device_properties_set
+from ..mixins.binary_sensor import BasicBinarySensorTests
+from ..mixins.climate import TargetTemperatureTests
 from .base_device_tests import TuyaDeviceTestCase
 
 HVACMODE_DPS = "1"
@@ -17,12 +20,27 @@ PRESET_DPS = "4"
 ERROR_DPS = "9"
 
 
-class TestRemoraHeatpump(TuyaDeviceTestCase):
+class TestRemoraHeatpump(
+    BasicBinarySensorTests, TargetTemperatureTests, TuyaDeviceTestCase
+):
     __test__ = True
 
     def setUp(self):
         self.setUpForConfig("remora_heatpump.yaml", REMORA_HEATPUMP_PAYLOAD)
         self.subject = self.entities.get("climate")
+        self.setUpTargetTemperature(
+            TEMPERATURE_DPS,
+            self.subject,
+            min=5,
+            max=40,
+        )
+        self.setUpBasicBinarySensor(
+            ERROR_DPS,
+            self.entities.get("binary_sensor_water_flow"),
+            device_class=DEVICE_CLASS_PROBLEM,
+            testdata=(1, 0),
+        )
+        self.mark_secondary(["binary_sensor_water_flow"])
 
     def test_supported_features(self):
         self.assertEqual(
@@ -41,25 +59,6 @@ class TestRemoraHeatpump(TuyaDeviceTestCase):
             self.subject.temperature_unit, self.subject._device.temperature_unit
         )
 
-    def test_target_temperature(self):
-        self.dps[TEMPERATURE_DPS] = 25
-        self.assertEqual(self.subject.target_temperature, 25)
-
-    def test_target_temperature_step(self):
-        self.assertEqual(self.subject.target_temperature_step, 1)
-
-    def test_minimum_target_temperature(self):
-        self.assertEqual(self.subject.min_temp, 5)
-
-    def test_maximum_target_temperature(self):
-        self.assertEqual(self.subject.max_temp, 40)
-
-    async def test_legacy_set_temperature_with_temperature(self):
-        async with assert_device_properties_set(
-            self.subject._device, {TEMPERATURE_DPS: 24}
-        ):
-            await self.subject.async_set_temperature(temperature=24)
-
     async def test_legacy_set_temperature_with_preset_mode(self):
         async with assert_device_properties_set(
             self.subject._device, {PRESET_DPS: "cool"}
@@ -73,34 +72,6 @@ class TestRemoraHeatpump(TuyaDeviceTestCase):
             await self.subject.async_set_temperature(
                 temperature=26, preset_mode="Smart Heating"
             )
-
-    async def test_legacy_set_temperature_with_no_valid_properties(self):
-        await self.subject.async_set_temperature(something="else")
-        self.subject._device.async_set_property.assert_not_called()
-
-    async def test_set_target_temperature_succeeds_within_valid_range(self):
-        async with assert_device_properties_set(
-            self.subject._device,
-            {TEMPERATURE_DPS: 25},
-        ):
-            await self.subject.async_set_target_temperature(25)
-
-    async def test_set_target_temperature_rounds_value_to_closest_integer(self):
-        async with assert_device_properties_set(
-            self.subject._device, {TEMPERATURE_DPS: 23}
-        ):
-            await self.subject.async_set_target_temperature(22.6)
-
-    async def test_set_target_temperature_fails_outside_valid_range(self):
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(4\\) must be between 5 and 40"
-        ):
-            await self.subject.async_set_target_temperature(4)
-
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(41\\) must be between 5 and 40"
-        ):
-            await self.subject.async_set_target_temperature(41)
 
     def test_current_temperature(self):
         self.dps[CURRENTTEMP_DPS] = 25
@@ -210,15 +181,15 @@ class TestRemoraHeatpump(TuyaDeviceTestCase):
 
     def test_error_state(self):
         self.dps[ERROR_DPS] = 0
-        self.assertEqual(self.subject.device_state_attributes, {"error": "OK"})
+        self.assertEqual(self.subject.extra_state_attributes, {"error": "OK"})
 
         self.dps[ERROR_DPS] = 1
         self.assertEqual(
-            self.subject.device_state_attributes,
+            self.subject.extra_state_attributes,
             {"error": "Water Flow Protection"},
         )
         self.dps[ERROR_DPS] = 2
         self.assertEqual(
-            self.subject.device_state_attributes,
+            self.subject.extra_state_attributes,
             {"error": 2},
         )

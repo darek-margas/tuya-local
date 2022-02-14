@@ -13,9 +13,10 @@ this should not be seen as a security measure, rather it improves
 speed and reliability by using local connections, and may unlock some
 features of your device, or even unlock whole devices, that are not
 supported by the Tuya cloud API.  Currently the focus is mainly on
-climate devices, which are not well supported by other similar
+more complex devices, which are not well supported by other similar
 integrations. Simpler devices like switches and lights can be covered
-by [rospogrigio/localtuya](https://github.com/rospogrigio/localtuya/).
+by [rospogrigio/localtuya](https://github.com/rospogrigio/localtuya/),
+though some switches are now covered by this integration.
 
 ---
 
@@ -36,9 +37,14 @@ the device will not work despite being listed below.
 - Goldair heater models beginning with the code GPPH, GCPV, GECO
 - Kogan Wi-Fi Convection Panel heaters - KAHTP and KAWFHTP models
 - Andersson GSH heater
-- Eurom heater
+- Eurom Mon Soleil 300,600,800, 350,601,720 and 300,450,720 Verre heaters
+- Eurom Wall Designheat 2000 heater
 - Purline Hoti M100 heater
 - Wetair WCH-750 heater
+- Kogan Flame effect heater - KAWHMFP20BA model
+- Nedis convection heater - WIFIHTPL20F models
+- Ecostrad Accent iQ heating panels
+- Ecostrad iQ Ceramic radiators
 
 ### Air Conditioners / Heatpumps
 
@@ -48,11 +54,13 @@ the device will not work despite being listed below.
 - Carson CB PA280
 - Kogan 2.6kW portable air conditioner
 - Eberg Qubo Q40HD
+- Eberg Cooly C35HD
 
 ### Pool heaters / heatpumps
 
 - Garden PAC pool heatpump
-- Madimack pool heatpump
+- Madimack Elite V3 pool heatpump
+- Madimack(model unknown) pool heatpump
 - Remora pool heatpump
 - BWT FI 45 heatpump
 - Poolex Silverline and Vertigo heatpump
@@ -63,46 +71,85 @@ the device will not work despite being listed below.
   be figured out.
 
 ### Thermostats
-- Inkbird ITC306A thermostat smartplug (not fully functional)
+- Inkbird ITC306A thermostat smartplug
+- Inkbird ITC308 thermostat smartplug
 - Beca BHP-6000 Room Heat Pump control thermostat
-- Beca BHT-6000 Floor Heating thermostat
-- Beca BHT-002 Floor Heating thermostat
-- Awow/Mi-heat TH213 thermostat
+- Beca BHT-6000/8000 Floor Heating thermostat
+- Beca BHT-002/3000 Floor Heating thermostat (with external temp sensor)
+- Moes BHT-002 thermostat (without external temp sensor)
+- Beca BAC-002 thermostat
+- Awow/Mi-heat TH213 thermostat (two variants)
 - Siswell T29UTW thermostat
-- Siswell C16 thermostat (rebadged as Warmme, Klima and others)
-
-### Kettles
-- Kogan Glass 1.7L Smart Kettle (not reliably detected)
+- Siswell C16 thermostat _(rebadged as Warmme, Klima and others)_
+- Minco MH-1823D thermostat
+- Owon PCT513 thermostat
+- Beok TR9B thermostat _(rebadged as Vancoo and perhaps others)_
+- Hysen HY08WE-2 thermostat
+- Nashone MTS-700-WB thermostat smartplug
 
 ### Fans
 - Goldair GCPF315 fan
 - Anko HEGSM40 fan
 - Lexy F501 fan
 - Deta fan controller
-- Arlec Grid Connect Smart Ceiling Fan (without light)
+- Arlec Grid Connect Smart Ceiling Fan (with and without light)
+- Stirling FS1-40DC Pedestal fan
+- Aspen ASP 200 fan
+- TMWF02 fan controller
 
 ### Air Purifiers
 - Renpho RP-AP001S air purifier
+- Poiema One air purifier
+- Himox H06 Air Purifier
 
 ### Dehumidifiers
 - Goldair GPDH420 dehumidifier
-- ElectriQ CD12PW dehmidifier
+- ElectriQ CD12PW dehumidifier
+- ElectriQ CD12PWv2 dehumidifier
 - ElectriQ CD20PRO-LE-V2 dehumidifier
 - ElectriQ CD25PRO-LE-V2 dehumidifier
 - ElectriQ DESD9LW dehumidifier
 - Kogan SmarterHome 7L Desiccant dehumidifier
+- JJPro JPD01 dehumidifer
+- JJPro JPD02 dehumidifier
 
 ### Humidifiers
-- Eanons QT-JS2014 Purifying humidifer
+- Eanons QT-JS2014 Purifying humidifier
+- Wetair WAW-H1210LW humidifier
+
+### Kitchen Appliances
+- Kogan Glass 1.7L Smart Kettle (not reliably detected)
+
+### Smart Meter/Circuit Breaker
+- SmartMCB SMT006 Energy Meter
 
 ### SmartPlugs/Wall sockets
-- Kogan Single Smartplug with Energy Monitoring
-- Kogan Single Smartplug with Energy Monitoring and USB charging
-- Grid Connect double outlet with Energy Monitoring, Master and Individual switches and Child Lock.
-- Grid Connect double outlet wall socket
+- Generic Smartplug with Energy monitoring (older models)
+  _confirmed as working with Kogan and Blitzwolf Single Smartplugs_
+- Generic Smartplug with Energy monitoring (newer models)
+  _confirmed working with Kogan single smartplug with USB and Rillpac smartplugs_
+- Generic Smartplug with more advanced energy monitoring
+  _confirmed working with CBE smartplugs_
 - Mirabella Genio Smart plug with USB
-- Other brands may work with the above configurations
+- Grid Connect double outlet with Energy Monitoring, Master and Individual switches and Child Lock.
+- DIGOO DG-SP202 dual smartplug with energy monitoring and timers.
+- DIGOO DG-SP01 USB smartplug with night light.
+- Grid Connect double outlet wall socket
+- Woox R4028/DIGOO DG-PS01 3 outlet + USB powerstrip with individual timers.
+Other brands may work with the above configurations
+
 - Simple Switch - a switch only, can be a fallback for many other unsupported devices, to allow just power to be switched on/off.
+- Simple Switch with Timer - a single switch and timer, will probably work for a lot of smart switches that are not covered by the more advanced configs above.
+
+### Covers
+- Simple Garage Door
+
+### Vacuum Cleaners
+- Lefant M213 Vacuum Cleaner
+- Kyvol E30 Vacuum Cleaner
+
+### Miscellaneous
+- Qoto 03 Smart Water Valve / Sprinkler Controller
 
 ---
 
@@ -193,42 +240,18 @@ Assistant.  Although Home Assistant allows you to change the name
 later, it will only change the name used in the UI, not the name of
 the entities.
 
-#### climate
+#### (entities)
 
-&nbsp;&nbsp;&nbsp;&nbsp;_(boolean) (Optional)_ Whether to surface this
-device as a climate device. (supported for heaters, heatpumps,
-deprecated for fans, dehumidifiers and humidifiers which should use
-the fan and humidifier entities instead)
+&nbsp;&nbsp;&nbsp;&nbsp;_(boolean) (Optional)_ A number of options
+will be available for each of the entities exposed by the device.
+They will be named for the platform type and an optional name for
+the entity as a suffix (eg `climate`, `humidifier`, `lock_child_lock`)
+Setting them to True will expose the entity in Home Assistant.
 
-#### humidifier
+## Offline operation gotchas
 
-&nbsp;&nbsp;&nbsp;&nbsp;_(boolean) (Optional)_ Whether to surface this
-device as a humidifier device (supported only for humidifiers and
-dehumidifiers)
+Many Tuya devices will stop responding if unable to connect to the Tuya servers for an extended period.  Reportedly, some devices act better offline if DNS as well as TCP connections is blocked.
 
-#### fan
-
-&nbsp;&nbsp;&nbsp;&nbsp;_(boolean) (Optional)_ Whether to surface this
-device as a fan device (supported for fans, humidifiers and
-dehumidifiers)
-
-#### light
-
-&nbsp;&nbsp;&nbsp;&nbsp;_(boolean) (Optional)_ Whether to surface this
-device as a light.  This may be an auxiliary display light control on
-devices such as heaters.
-
-#### lock
-
-&nbsp;&nbsp;&nbsp;&nbsp;_(boolean) (Optional)_ Whether to surface this
-device as a lock device. This may be an auxiliary lock such as a child
-lock for devices such as heaters.
-
-#### switch
-
-&nbsp;&nbsp;&nbsp;&nbsp;_(boolean) (Optional)_ Whether to surface this
-device as a switch device. This may be a switch for an auxiliary
-function or a master switch for multi-function devices.
 
 ## Heater gotchas
 
@@ -290,9 +313,9 @@ work. If you can figure out how to set the speed through the Tuya
 protocol for these devices, please leave feedback on Issue #22.
 
 
-## Kogan Switch gotchas
+## Smart Switch gotchas
 
-While setting this up, I observed after a while that the current and
+It has been observed after a while that the current and
 power readings from the switch were returning 0 when there was clearly
 a load on the switch.  After unplugging and replugging, the switch
 started returning only dps 1 and 2 (switch status and timer). If
@@ -300,6 +323,14 @@ HomeAssistant is restarted in that state, the switch detection would
 fail, however as Home Assistant was left running, it continued to work
 with no readings for the current, power and voltage.  I unplugged the
 switch overnight, and in the morning it was working correctly.
+
+Cumulative Energy readings seem to be reset whenever the reading is
+successfully sent to the server.  This leads to the energy usage never moving
+from the minimum reporting level of 0.1kWh, which isn't very useful.
+It may be possible to get useful readings by blocking the switch from accessing
+the internet, otherwise an integration sensor based on the Power sensor
+will need to be set up on the Home Assistant side, and the Energy sensor
+ignored.
 
 ## Kogan Kettle gotchas
 
@@ -348,13 +379,9 @@ You can find these keys the same way as you would for any Tuya local integration
 
 ## Next steps
 
-1. A generic sensor entity is needed to surface some of the sensors that are currently attributes in a way that works with HA's analytics and energy features.
-2. Remove the need for custom classes for gpph heater and goldair dehumidifier.
-These devices from upstream have some complex logic that currently cannot be represented in the config files.  Find a way to configure this logic so the last of the legacy code can be removed.
-3. This component is mosty unit-tested thanks to the upstream project, but there are a few more to complete. Feel free to use existing specs as inspiration and the Sonar Cloud analysis to see where the gaps are.
-4. Once unit tests are complete, the next task is to complete the Home Assistant quality checklist before considering submission to the HA team for inclusion in standard installations.
-5. Discovery seems possible with the new tinytuya library, though the steps to get a local key will most likely remain manual.  Discovery also returns a productKey, which might help make the device detection more reliable where different devices use the same dps mapping but different names for the presets for example.
-6. number and select entities would help to surface more of the settings that do not fit into the standard types.
+1. This component is mosty unit-tested thanks to the upstream project, but there are a few more to complete. Feel free to use existing specs as inspiration and the Sonar Cloud analysis to see where the gaps are.
+2. Once unit tests are complete, the next task is to complete the Home Assistant quality checklist before considering submission to the HA team for inclusion in standard installations.
+3. Discovery seems possible with the new tinytuya library, though the steps to get a local key will most likely remain manual.  Discovery also returns a productKey, which might help make the device detection more reliable where different devices use the same dps mapping but different names for the presets for example.
 
 Please report any issues and feel free to raise pull requests.
 [Many others](https://github.com/make-all/tuya-local/blob/main/ACKNOWLEDGEMENTS.md) have contributed their help already.

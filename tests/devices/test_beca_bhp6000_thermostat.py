@@ -12,6 +12,9 @@ from homeassistant.const import STATE_UNAVAILABLE, TEMP_CELSIUS, TEMP_FAHRENHEIT
 
 from ..const import BECA_BHP6000_PAYLOAD
 from ..helpers import assert_device_properties_set
+from ..mixins.climate import TargetTemperatureTests
+from ..mixins.light import BasicLightTests
+from ..mixins.lock import BasicLockTests
 from .base_device_tests import TuyaDeviceTestCase
 
 LIGHT_DPS = "1"
@@ -23,14 +26,26 @@ FAN_DPS = "6"
 LOCK_DPS = "7"
 
 
-class TestBecaBHP6000Thermostat(TuyaDeviceTestCase):
+class TestBecaBHP6000Thermostat(
+    BasicLightTests,
+    BasicLockTests,
+    TargetTemperatureTests,
+    TuyaDeviceTestCase,
+):
     __test__ = True
 
     def setUp(self):
         self.setUpForConfig("beca_bhp6000_thermostat_f.yaml", BECA_BHP6000_PAYLOAD)
         self.subject = self.entities.get("climate")
-        self.light = self.entities.get("light_display")
-        self.lock = self.entities.get("lock_child_lock")
+        self.setUpTargetTemperature(
+            TEMPERATURE_DPS,
+            self.subject,
+            min=40,
+            max=95,
+        )
+        self.setUpBasicLight(LIGHT_DPS, self.entities.get("light_display"))
+        self.setUpBasicLock(LOCK_DPS, self.entities.get("lock_child_lock"))
+        self.mark_secondary(["light_display", "lock_child_lock"])
 
     def test_supported_features(self):
         self.assertEqual(
@@ -40,25 +55,6 @@ class TestBecaBHP6000Thermostat(TuyaDeviceTestCase):
 
     def test_temperature_unit_returns_configured_temperature_unit(self):
         self.assertEqual(self.subject.temperature_unit, TEMP_FAHRENHEIT)
-
-    def test_target_temperature(self):
-        self.dps[TEMPERATURE_DPS] = 25
-        self.assertEqual(self.subject.target_temperature, 25)
-
-    def test_target_temperature_step(self):
-        self.assertEqual(self.subject.target_temperature_step, 1)
-
-    def test_minimum_target_temperature(self):
-        self.assertEqual(self.subject.min_temp, 40)
-
-    def test_maximum_target_temperature(self):
-        self.assertEqual(self.subject.max_temp, 95)
-
-    async def test_legacy_set_temperature_with_temperature(self):
-        async with assert_device_properties_set(
-            self.subject._device, {TEMPERATURE_DPS: 80}
-        ):
-            await self.subject.async_set_temperature(temperature=80)
 
     async def test_legacy_set_temperature_with_preset_mode(self):
         async with assert_device_properties_set(self.subject._device, {PRESET_DPS: 1}):
@@ -75,34 +71,6 @@ class TestBecaBHP6000Thermostat(TuyaDeviceTestCase):
             await self.subject.async_set_temperature(
                 temperature=78, preset_mode="Holiday Hold"
             )
-
-    async def test_legacy_set_temperature_with_no_valid_properties(self):
-        await self.subject.async_set_temperature(something="else")
-        self.subject._device.async_set_property.assert_not_called()
-
-    async def test_set_target_temperature_succeeds_within_valid_range(self):
-        async with assert_device_properties_set(
-            self.subject._device,
-            {TEMPERATURE_DPS: 75},
-        ):
-            await self.subject.async_set_target_temperature(75)
-
-    async def test_set_target_temperature_rounds_value_to_closest_integer(self):
-        async with assert_device_properties_set(
-            self.subject._device, {TEMPERATURE_DPS: 78}
-        ):
-            await self.subject.async_set_target_temperature(77.6)
-
-    async def test_set_target_temperature_fails_outside_valid_range(self):
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(39\\) must be between 40 and 95"
-        ):
-            await self.subject.async_set_target_temperature(39)
-
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(96\\) must be between 40 and 95"
-        ):
-            await self.subject.async_set_target_temperature(96)
 
     def test_current_temperature(self):
         self.dps[CURRENTTEMP_DPS] = 70
@@ -168,10 +136,8 @@ class TestBecaBHP6000Thermostat(TuyaDeviceTestCase):
         ):
             await self.subject.async_set_fan_mode("on")
 
-    def test_device_state_attribures(self):
-        self.assertEqual(self.subject.device_state_attributes, {})
-        self.assertEqual(self.light.device_state_attributes, {})
-        self.assertEqual(self.lock.device_state_attributes, {})
+    def test_extra_state_attributes(self):
+        self.assertEqual(self.subject.extra_state_attributes, {})
 
     def test_icons(self):
         self.dps[HVACMODE_DPS] = 1
@@ -186,9 +152,9 @@ class TestBecaBHP6000Thermostat(TuyaDeviceTestCase):
         self.assertEqual(self.subject.icon, "mdi:hvac")
 
         self.dps[LIGHT_DPS] = True
-        self.assertEqual(self.light.icon, "mdi:led-on")
+        self.assertEqual(self.basicLight.icon, "mdi:led-on")
         self.dps[LIGHT_DPS] = False
-        self.assertEqual(self.light.icon, "mdi:led-off")
+        self.assertEqual(self.basicLight.icon, "mdi:led-off")
 
 
 class TestBecaBHP6000ThermostatC(TuyaDeviceTestCase):
@@ -197,6 +163,7 @@ class TestBecaBHP6000ThermostatC(TuyaDeviceTestCase):
     def setUp(self):
         self.setUpForConfig("beca_bhp6000_thermostat_c.yaml", BECA_BHP6000_PAYLOAD)
         self.subject = self.entities.get("climate")
+        self.mark_secondary(["light_display", "lock_child_lock"])
 
     def test_temperature_unit_returns_configured_temperature_unit(self):
         self.assertEqual(self.subject.temperature_unit, TEMP_CELSIUS)

@@ -7,11 +7,19 @@ from homeassistant.components.climate.const import (
     SUPPORT_PRESET_MODE,
     SUPPORT_TARGET_TEMPERATURE,
 )
-from homeassistant.components.lock import STATE_LOCKED, STATE_UNLOCKED
-from homeassistant.const import STATE_UNAVAILABLE
+from homeassistant.const import (
+    DEVICE_CLASS_TEMPERATURE,
+    STATE_UNAVAILABLE,
+    TEMP_CELSIUS,
+)
 
 from ..const import TH213_THERMOSTAT_PAYLOAD
 from ..helpers import assert_device_properties_set
+from ..mixins.climate import TargetTemperatureTests
+from ..mixins.lock import BasicLockTests
+from ..mixins.number import MultiNumberTests
+from ..mixins.select import BasicSelectTests
+from ..mixins.sensor import BasicSensorTests
 from .base_device_tests import TuyaDeviceTestCase
 
 HVACMODE_DPS = "1"
@@ -30,13 +38,68 @@ UNKNOWN108_DPS = "108"
 UNKNOWN110_DPS = "110"
 
 
-class TestAwowTH213Thermostat(TuyaDeviceTestCase):
+class TestAwowTH213Thermostat(
+    BasicLockTests,
+    BasicSelectTests,
+    BasicSensorTests,
+    MultiNumberTests,
+    TargetTemperatureTests,
+    TuyaDeviceTestCase,
+):
     __test__ = True
 
     def setUp(self):
         self.setUpForConfig("awow_th213_thermostat.yaml", TH213_THERMOSTAT_PAYLOAD)
         self.subject = self.entities.get("climate")
-        self.lock = self.entities.get("lock_child_lock")
+        self.setUpTargetTemperature(
+            TEMPERATURE_DPS,
+            self.subject,
+            min=5,
+            max=30,
+        )
+        self.setUpBasicLock(LOCK_DPS, self.entities.get("lock_child_lock"))
+        self.setUpBasicSensor(
+            EXTERNTEMP_DPS,
+            self.entities.get("sensor_external_temperature"),
+            unit=TEMP_CELSIUS,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class="measurement",
+        )
+        self.setUpBasicSelect(
+            SENSOR_DPS,
+            self.entities.get("select_temperature_sensor"),
+            {
+                0: "Internal",
+                1: "External",
+                2: "Both",
+            },
+        )
+        self.setUpMultiNumber(
+            [
+                {
+                    "name": "number_calibration_offset",
+                    "dps": CALIBRATE_DPS,
+                    "min": -9,
+                    "max": 9,
+                    "unit": TEMP_CELSIUS,
+                },
+                {
+                    "name": "number_calibration_swing",
+                    "dps": CALIBSWING_DPS,
+                    "min": 1,
+                    "max": 9,
+                    "unit": TEMP_CELSIUS,
+                },
+            ]
+        )
+        self.mark_secondary(
+            [
+                "lock_child_lock",
+                "select_temperature_sensor",
+                "number_calibration_offset",
+                "number_calibration_swing",
+            ]
+        )
 
     def test_supported_features(self):
         self.assertEqual(
@@ -52,34 +115,15 @@ class TestAwowTH213Thermostat(TuyaDeviceTestCase):
         self.assertEqual(self.subject.icon, "mdi:thermometer-off")
 
         self.dps[LOCK_DPS] = True
-        self.assertEqual(self.lock.icon, "mdi:hand-back-right-off")
+        self.assertEqual(self.basicLock.icon, "mdi:hand-back-right-off")
 
         self.dps[LOCK_DPS] = False
-        self.assertEqual(self.lock.icon, "mdi:hand-back-right")
+        self.assertEqual(self.basicLock.icon, "mdi:hand-back-right")
 
     def test_temperature_unit_returns_device_temperature_unit(self):
         self.assertEqual(
             self.subject.temperature_unit, self.subject._device.temperature_unit
         )
-
-    def test_target_temperature(self):
-        self.dps[TEMPERATURE_DPS] = 25
-        self.assertEqual(self.subject.target_temperature, 25)
-
-    def test_target_temperature_step(self):
-        self.assertEqual(self.subject.target_temperature_step, 1)
-
-    def test_minimum_target_temperature(self):
-        self.assertEqual(self.subject.min_temp, 5)
-
-    def test_maximum_target_temperature(self):
-        self.assertEqual(self.subject.max_temp, 30)
-
-    async def test_legacy_set_temperature_with_temperature(self):
-        async with assert_device_properties_set(
-            self.subject._device, {TEMPERATURE_DPS: 24}
-        ):
-            await self.subject.async_set_temperature(temperature=24)
 
     async def test_legacy_set_temperature_with_preset_mode(self):
         async with assert_device_properties_set(self.subject._device, {PRESET_DPS: 2}):
@@ -96,34 +140,6 @@ class TestAwowTH213Thermostat(TuyaDeviceTestCase):
             await self.subject.async_set_temperature(
                 temperature=25, preset_mode="Smart"
             )
-
-    async def test_legacy_set_temperature_with_no_valid_properties(self):
-        await self.subject.async_set_temperature(something="else")
-        self.subject._device.async_set_property.assert_not_called()
-
-    async def test_set_target_temperature(self):
-        async with assert_device_properties_set(
-            self.subject._device, {TEMPERATURE_DPS: 25}
-        ):
-            await self.subject.async_set_target_temperature(25)
-
-    async def test_set_target_temperature_rounds_value_to_closest_integer(self):
-        async with assert_device_properties_set(
-            self.subject._device,
-            {TEMPERATURE_DPS: 25},
-        ):
-            await self.subject.async_set_target_temperature(24.6)
-
-    async def test_set_target_temperature_fails_outside_valid_range(self):
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(4\\) must be between 5 and 30"
-        ):
-            await self.subject.async_set_target_temperature(4)
-
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(31\\) must be between 5 and 30"
-        ):
-            await self.subject.async_set_target_temperature(31)
 
     def test_current_temperature(self):
         self.dps[CURRENTTEMP_DPS] = 25
@@ -215,7 +231,7 @@ class TestAwowTH213Thermostat(TuyaDeviceTestCase):
         self.dps[HVACMODE_DPS] = False
         self.assertEqual(self.subject.hvac_action, CURRENT_HVAC_OFF)
 
-    def test_device_state_attributes(self):
+    def test_extra_state_attributes(self):
         self.dps[ERROR_DPS] = 8
         self.dps[EXTERNTEMP_DPS] = 27
         self.dps[SENSOR_DPS] = 1
@@ -226,7 +242,7 @@ class TestAwowTH213Thermostat(TuyaDeviceTestCase):
         self.dps[UNKNOWN110_DPS] = 110
 
         self.assertDictEqual(
-            self.subject.device_state_attributes,
+            self.subject.extra_state_attributes,
             {
                 "error": 8,
                 "external_temperature": 27,
@@ -238,31 +254,3 @@ class TestAwowTH213Thermostat(TuyaDeviceTestCase):
                 "unknown_110": 110,
             },
         )
-
-    def test_lock_state(self):
-        self.dps[LOCK_DPS] = True
-        self.assertEqual(self.lock.state, STATE_LOCKED)
-
-        self.dps[LOCK_DPS] = False
-        self.assertEqual(self.lock.state, STATE_UNLOCKED)
-
-        self.dps[LOCK_DPS] = None
-        self.assertEqual(self.lock.state, STATE_UNAVAILABLE)
-
-    def test_lock_is_locked(self):
-        self.dps[LOCK_DPS] = True
-        self.assertTrue(self.lock.is_locked)
-
-        self.dps[LOCK_DPS] = False
-        self.assertFalse(self.lock.is_locked)
-
-        self.dps[LOCK_DPS] = None
-        self.assertFalse(self.lock.is_locked)
-
-    async def test_lock_locks(self):
-        async with assert_device_properties_set(self.lock._device, {LOCK_DPS: True}):
-            await self.lock.async_lock()
-
-    async def test_lock_unlocks(self):
-        async with assert_device_properties_set(self.lock._device, {LOCK_DPS: False}):
-            await self.lock.async_unlock()

@@ -3,11 +3,12 @@ from homeassistant.components.fan import (
     SUPPORT_PRESET_MODE,
     SUPPORT_SET_SPEED,
 )
-
-from homeassistant.const import STATE_UNAVAILABLE
+from homeassistant.const import TIME_SECONDS
 
 from ..const import ANKO_FAN_PAYLOAD
 from ..helpers import assert_device_properties_set
+from ..mixins.number import BasicNumberTests
+from ..mixins.switch import SwitchableTests
 from .base_device_tests import TuyaDeviceTestCase
 
 SWITCH_DPS = "1"
@@ -17,40 +18,26 @@ OSCILLATE_DPS = "4"
 TIMER_DPS = "6"
 
 
-class TestAnkoFan(TuyaDeviceTestCase):
+class TestAnkoFan(SwitchableTests, BasicNumberTests, TuyaDeviceTestCase):
     __test__ = True
 
     def setUp(self):
         self.setUpForConfig("anko_fan.yaml", ANKO_FAN_PAYLOAD)
         self.subject = self.entities["fan"]
+        self.setUpSwitchable(SWITCH_DPS, self.subject)
+        self.setUpBasicNumber(
+            TIMER_DPS,
+            self.entities.get("number_timer"),
+            max=9,
+            unit=TIME_SECONDS,
+        )
+        self.mark_secondary(["number_timer"])
 
     def test_supported_features(self):
         self.assertEqual(
             self.subject.supported_features,
             SUPPORT_OSCILLATE | SUPPORT_PRESET_MODE | SUPPORT_SET_SPEED,
         )
-
-    def test_is_on(self):
-        self.dps[SWITCH_DPS] = True
-        self.assertTrue(self.subject.is_on)
-
-        self.dps[SWITCH_DPS] = False
-        self.assertFalse(self.subject.is_on)
-
-        self.dps[SWITCH_DPS] = None
-        self.assertEqual(self.subject.is_on, STATE_UNAVAILABLE)
-
-    async def test_turn_on(self):
-        async with assert_device_properties_set(
-            self.subject._device, {SWITCH_DPS: True}
-        ):
-            await self.subject.async_turn_on()
-
-    async def test_turn_off(self):
-        async with assert_device_properties_set(
-            self.subject._device, {SWITCH_DPS: False}
-        ):
-            await self.subject.async_turn_off()
 
     def test_preset_mode(self):
         self.dps[PRESET_DPS] = "normal"
@@ -130,6 +117,6 @@ class TestAnkoFan(TuyaDeviceTestCase):
         async with assert_device_properties_set(self.subject._device, {SPEED_DPS: 6}):
             await self.subject.async_set_percentage(80)
 
-    def test_device_state_attributes(self):
+    def test_extra_state_attributes(self):
         self.dps[TIMER_DPS] = "5"
-        self.assertEqual(self.subject.device_state_attributes, {"timer": 5})
+        self.assertEqual(self.subject.extra_state_attributes, {"timer": 5})

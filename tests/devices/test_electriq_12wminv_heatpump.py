@@ -9,11 +9,13 @@ from homeassistant.components.climate.const import (
     SUPPORT_SWING_MODE,
     SUPPORT_TARGET_TEMPERATURE,
 )
-from homeassistant.components.light import COLOR_MODE_ONOFF
 from homeassistant.const import STATE_UNAVAILABLE
 
 from ..const import ELECTRIQ_12WMINV_HEATPUMP_PAYLOAD
 from ..helpers import assert_device_properties_set
+from ..mixins.climate import TargetTemperatureTests
+from ..mixins.light import BasicLightTests
+from ..mixins.switch import BasicSwitchTests
 from .base_device_tests import TuyaDeviceTestCase
 
 POWER_DPS = "1"
@@ -34,7 +36,12 @@ UNKNOWN109_DPS = "109"
 UNKNOWN110_DPS = "110"
 
 
-class TestElectriq12WMINVHeatpump(TuyaDeviceTestCase):
+class TestElectriq12WMINVHeatpump(
+    BasicLightTests,
+    BasicSwitchTests,
+    TargetTemperatureTests,
+    TuyaDeviceTestCase,
+):
     __test__ = True
 
     def setUp(self):
@@ -42,8 +49,15 @@ class TestElectriq12WMINVHeatpump(TuyaDeviceTestCase):
             "electriq_12wminv_heatpump.yaml", ELECTRIQ_12WMINV_HEATPUMP_PAYLOAD
         )
         self.subject = self.entities.get("climate")
-        self.light = self.entities.get("light_display")
-        self.switch = self.entities.get("switch_sleep")
+        self.setUpTargetTemperature(
+            TEMPERATURE_DPS,
+            self.subject,
+            min=16,
+            max=32,
+        )
+        self.setUpBasicLight(LIGHT_DPS, self.entities.get("light_display"))
+        self.setUpBasicSwitch(SWITCH_DPS, self.entities.get("switch_sleep"))
+        self.mark_secondary(["light_display", "lock_child_lock"])
 
     def test_supported_features(self):
         self.assertEqual(
@@ -70,53 +84,6 @@ class TestElectriq12WMINVHeatpump(TuyaDeviceTestCase):
         self.assertEqual(
             self.subject.temperature_unit, self.subject._device.temperature_unit
         )
-
-    def test_target_temperature(self):
-        self.dps[TEMPERATURE_DPS] = 25
-        self.assertEqual(self.subject.target_temperature, 25)
-
-    def test_target_temperature_step(self):
-        self.assertEqual(self.subject.target_temperature_step, 1)
-
-    def test_minimum_target_temperature(self):
-        self.assertEqual(self.subject.min_temp, 16)
-
-    def test_maximum_target_temperature(self):
-        self.assertEqual(self.subject.max_temp, 32)
-
-    async def test_legacy_set_temperature_with_temperature(self):
-        async with assert_device_properties_set(
-            self.subject._device, {TEMPERATURE_DPS: 24}
-        ):
-            await self.subject.async_set_temperature(temperature=24)
-
-    async def test_legacy_set_temperature_with_no_valid_properties(self):
-        await self.subject.async_set_temperature(something="else")
-        self.subject._device.async_set_property.assert_not_called()
-
-    async def test_set_target_temperature_succeeds_within_valid_range(self):
-        async with assert_device_properties_set(
-            self.subject._device,
-            {TEMPERATURE_DPS: 25},
-        ):
-            await self.subject.async_set_target_temperature(25)
-
-    async def test_set_target_temperature_rounds_value_to_closest_integer(self):
-        async with assert_device_properties_set(
-            self.subject._device, {TEMPERATURE_DPS: 23}
-        ):
-            await self.subject.async_set_target_temperature(22.6)
-
-    async def test_set_target_temperature_fails_outside_valid_range(self):
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(15\\) must be between 16 and 32"
-        ):
-            await self.subject.async_set_target_temperature(15)
-
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(33\\) must be between 16 and 32"
-        ):
-            await self.subject.async_set_target_temperature(33)
 
     def test_current_temperature(self):
         self.dps[CURRENTTEMP_DPS] = 25
@@ -283,7 +250,7 @@ class TestElectriq12WMINVHeatpump(TuyaDeviceTestCase):
         ):
             await self.subject.async_set_swing_mode("vertical")
 
-    def test_device_state_attribures(self):
+    def test_extra_state_attribures(self):
         self.dps[UNKNOWN8_DPS] = True
         self.dps[UNKNOWN12_DPS] = False
         self.dps[UNKNOWN102_DPS] = True
@@ -292,7 +259,7 @@ class TestElectriq12WMINVHeatpump(TuyaDeviceTestCase):
         self.dps[UNKNOWN109_DPS] = 109
         self.dps[UNKNOWN110_DPS] = 110
         self.assertDictEqual(
-            self.subject.device_state_attributes,
+            self.subject.extra_state_attributes,
             {
                 "unknown_8": True,
                 "unknown_12": False,
@@ -304,95 +271,12 @@ class TestElectriq12WMINVHeatpump(TuyaDeviceTestCase):
             },
         )
 
-    def test_light_state_attributes(self):
-        self.assertEqual(self.light.device_state_attributes, {})
-
-    def test_light_supported_color_modes(self):
-        self.assertCountEqual(
-            self.light.supported_color_modes,
-            [COLOR_MODE_ONOFF],
-        )
-
-    def test_light_color_mode(self):
-        self.assertEqual(self.light.color_mode, COLOR_MODE_ONOFF)
-
-    def test_light_is_on(self):
-        self.dps[LIGHT_DPS] = True
-        self.assertTrue(self.light.is_on)
-        self.dps[LIGHT_DPS] = False
-        self.assertFalse(self.light.is_on)
-
-    async def test_light_turn_on(self):
-        async with assert_device_properties_set(
-            self.light._device,
-            {LIGHT_DPS: True},
-        ):
-            await self.light.async_turn_on()
-
-    async def test_light_turn_off(self):
-        async with assert_device_properties_set(
-            self.light._device,
-            {LIGHT_DPS: False},
-        ):
-            await self.light.async_turn_off()
-
-    async def test_toggle_turns_the_light_on_when_it_was_off(self):
-        self.dps[LIGHT_DPS] = False
-
-        async with assert_device_properties_set(self.light._device, {LIGHT_DPS: True}):
-            await self.light.async_toggle()
-
-    async def test_toggle_turns_the_light_off_when_it_was_on(self):
-        self.dps[LIGHT_DPS] = True
-
-        async with assert_device_properties_set(self.light._device, {LIGHT_DPS: False}):
-            await self.light.async_toggle()
-
     def test_light_icon(self):
         self.dps[LIGHT_DPS] = True
-        self.assertEqual(self.light.icon, "mdi:led-on")
+        self.assertEqual(self.basicLight.icon, "mdi:led-on")
 
         self.dps[LIGHT_DPS] = False
-        self.assertEqual(self.light.icon, "mdi:led-off")
-
-    def test_switch_state_attributes(self):
-        self.assertEqual(self.switch.device_state_attributes, {})
-
-    def test_switch_is_on(self):
-        self.dps[SWITCH_DPS] = True
-        self.assertTrue(self.switch.is_on)
-        self.dps[SWITCH_DPS] = False
-        self.assertFalse(self.switch.is_on)
-
-    async def test_switch_turn_on(self):
-        async with assert_device_properties_set(
-            self.switch._device,
-            {SWITCH_DPS: True},
-        ):
-            await self.switch.async_turn_on()
-
-    async def test_switch_turn_off(self):
-        async with assert_device_properties_set(
-            self.switch._device,
-            {SWITCH_DPS: False},
-        ):
-            await self.switch.async_turn_off()
-
-    async def test_toggle_turns_the_switch_on_when_it_was_off(self):
-        self.dps[SWITCH_DPS] = False
-
-        async with assert_device_properties_set(
-            self.switch._device, {SWITCH_DPS: True}
-        ):
-            await self.switch.async_toggle()
-
-    async def test_toggle_turns_the_switch_off_when_it_was_on(self):
-        self.dps[SWITCH_DPS] = True
-
-        async with assert_device_properties_set(
-            self.switch._device, {SWITCH_DPS: False}
-        ):
-            await self.switch.async_toggle()
+        self.assertEqual(self.basicLight.icon, "mdi:led-off")
 
     def test_switch_icon(self):
-        self.assertEqual(self.switch.icon, "mdi:power-sleep")
+        self.assertEqual(self.basicSwitch.icon, "mdi:power-sleep")

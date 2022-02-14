@@ -6,10 +6,10 @@ from homeassistant.components.fan import (
     SUPPORT_SET_SPEED,
 )
 
-from homeassistant.const import STATE_UNAVAILABLE
-
 from ..const import ARLEC_FAN_PAYLOAD
 from ..helpers import assert_device_properties_set
+from ..mixins.select import BasicSelectTests
+from ..mixins.switch import SwitchableTests
 from .base_device_tests import TuyaDeviceTestCase
 
 SWITCH_DPS = "1"
@@ -19,40 +19,31 @@ PRESET_DPS = "102"
 TIMER_DPS = "103"
 
 
-class TestArlecFan(TuyaDeviceTestCase):
+class TestArlecFan(SwitchableTests, BasicSelectTests, TuyaDeviceTestCase):
     __test__ = True
 
     def setUp(self):
         self.setUpForConfig("arlec_fan.yaml", ARLEC_FAN_PAYLOAD)
         self.subject = self.entities["fan"]
+        self.timer = self.entities["select_timer"]
+        self.setUpSwitchable(SWITCH_DPS, self.subject)
+        self.setUpBasicSelect(
+            TIMER_DPS,
+            self.entities["select_timer"],
+            {
+                "off": "Off",
+                "2hour": "2 hours",
+                "4hour": "4 hours",
+                "8hour": "8 hours",
+            },
+        )
+        self.mark_secondary(["select_timer"])
 
     def test_supported_features(self):
         self.assertEqual(
             self.subject.supported_features,
             SUPPORT_DIRECTION | SUPPORT_PRESET_MODE | SUPPORT_SET_SPEED,
         )
-
-    def test_is_on(self):
-        self.dps[SWITCH_DPS] = True
-        self.assertTrue(self.subject.is_on)
-
-        self.dps[SWITCH_DPS] = False
-        self.assertFalse(self.subject.is_on)
-
-        self.dps[SWITCH_DPS] = None
-        self.assertEqual(self.subject.is_on, STATE_UNAVAILABLE)
-
-    async def test_turn_on(self):
-        async with assert_device_properties_set(
-            self.subject._device, {SWITCH_DPS: True}
-        ):
-            await self.subject.async_turn_on()
-
-    async def test_turn_off(self):
-        async with assert_device_properties_set(
-            self.subject._device, {SWITCH_DPS: False}
-        ):
-            await self.subject.async_turn_off()
 
     def test_preset_mode(self):
         self.dps[PRESET_DPS] = "normal"
@@ -126,6 +117,6 @@ class TestArlecFan(TuyaDeviceTestCase):
         async with assert_device_properties_set(self.subject._device, {SPEED_DPS: 5}):
             await self.subject.async_set_percentage(80)
 
-    def test_device_state_attributes(self):
+    def test_extra_state_attributes(self):
         self.dps[TIMER_DPS] = "2hour"
-        self.assertEqual(self.subject.device_state_attributes, {"timer": "2hour"})
+        self.assertEqual(self.subject.extra_state_attributes, {"timer": "2hour"})

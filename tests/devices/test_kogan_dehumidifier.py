@@ -1,9 +1,15 @@
+from homeassistant.components.binary_sensor import DEVICE_CLASS_PROBLEM
 from homeassistant.components.fan import SUPPORT_OSCILLATE, SUPPORT_SET_SPEED
 from homeassistant.components.humidifier import SUPPORT_MODES
-from homeassistant.const import STATE_UNAVAILABLE
-
+from homeassistant.const import (
+    DEVICE_CLASS_HUMIDITY,
+    PERCENTAGE,
+)
 from ..const import KOGAN_DEHUMIDIFIER_PAYLOAD
 from ..helpers import assert_device_properties_set
+from ..mixins.binary_sensor import BasicBinarySensorTests
+from ..mixins.sensor import BasicSensorTests
+from ..mixins.switch import SwitchableTests
 from .base_device_tests import TuyaDeviceTestCase
 
 SWITCH_DPS = "1"
@@ -16,13 +22,30 @@ COUNTDOWN_DPS = "13"
 HUMIDITY_DPS = "101"
 
 
-class TestKoganDehumidifier(TuyaDeviceTestCase):
+class TestKoganDehumidifier(
+    BasicBinarySensorTests, BasicSensorTests, SwitchableTests, TuyaDeviceTestCase
+):
     __test__ = True
 
     def setUp(self):
         self.setUpForConfig("kogan_dehumidifier.yaml", KOGAN_DEHUMIDIFIER_PAYLOAD)
         self.subject = self.entities.get("humidifier")
+        self.setUpSwitchable(SWITCH_DPS, self.subject)
         self.fan = self.entities.get("fan")
+        self.setUpBasicBinarySensor(
+            ERROR_DPS,
+            self.entities.get("binary_sensor_tank"),
+            device_class=DEVICE_CLASS_PROBLEM,
+            testdata=(1, 0),
+        )
+        self.setUpBasicSensor(
+            CURRENTHUMID_DPS,
+            self.entities.get("sensor_current_humidity"),
+            device_class=DEVICE_CLASS_HUMIDITY,
+            state_class="measurement",
+            unit=PERCENTAGE,
+        )
+        self.mark_secondary(["binary_sensor_tank"])
 
     def test_supported_features(self):
         self.assertEqual(self.subject.supported_features, SUPPORT_MODES)
@@ -58,31 +81,6 @@ class TestKoganDehumidifier(TuyaDeviceTestCase):
     def test_target_humidity(self):
         self.dps[HUMIDITY_DPS] = 55
         self.assertEqual(self.subject.target_humidity, 55)
-
-    def test_is_on(self):
-        self.dps[SWITCH_DPS] = True
-        self.assertTrue(self.subject.is_on)
-        self.assertTrue(self.fan.is_on)
-
-        self.dps[SWITCH_DPS] = False
-        self.assertFalse(self.subject.is_on)
-        self.assertFalse(self.fan.is_on)
-
-        self.dps[SWITCH_DPS] = None
-        self.assertEqual(self.subject.is_on, STATE_UNAVAILABLE)
-        self.assertEqual(self.fan.is_on, STATE_UNAVAILABLE)
-
-    async def test_turn_on(self):
-        async with assert_device_properties_set(
-            self.subject._device, {SWITCH_DPS: True}
-        ):
-            await self.subject.async_turn_on()
-
-    async def test_turn_off(self):
-        async with assert_device_properties_set(
-            self.subject._device, {SWITCH_DPS: False}
-        ):
-            await self.subject.async_turn_off()
 
     async def test_fan_turn_on(self):
         async with assert_device_properties_set(
@@ -224,13 +222,13 @@ class TestKoganDehumidifier(TuyaDeviceTestCase):
             await self.fan.async_oscillate(False)
             self.subject._device.anticipate_property_value.assert_not_called()
 
-    def test_device_state_attributes(self):
+    def test_extra_state_attributes(self):
         self.dps[CURRENTHUMID_DPS] = 55
         self.dps[ERROR_DPS] = 1
         self.dps[TIMER_DPS] = 3
         self.dps[COUNTDOWN_DPS] = 160
         self.assertDictEqual(
-            self.subject.device_state_attributes,
+            self.subject.extra_state_attributes,
             {
                 "current_humidity": 55,
                 "error": "Tank full",
@@ -238,4 +236,4 @@ class TestKoganDehumidifier(TuyaDeviceTestCase):
                 "timer": 160,
             },
         )
-        self.assertEqual(self.fan.device_state_attributes, {})
+        self.assertEqual(self.fan.extra_state_attributes, {})

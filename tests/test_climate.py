@@ -8,8 +8,7 @@ from custom_components.tuya_local.const import (
     CONF_TYPE,
     DOMAIN,
 )
-from custom_components.tuya_local.dehumidifier.climate import GoldairDehumidifier
-from custom_components.tuya_local.heater.climate import GoldairHeater
+from custom_components.tuya_local.generic.climate import TuyaLocalClimate
 from custom_components.tuya_local.climate import async_setup_entry
 
 
@@ -30,12 +29,12 @@ async def test_init_entry(hass):
     hass.data[DOMAIN]["dummy"]["device"] = m_device
 
     await async_setup_entry(hass, entry, m_add_entities)
-    assert type(hass.data[DOMAIN]["dummy"][CONF_CLIMATE]) == GoldairHeater
+    assert type(hass.data[DOMAIN]["dummy"][CONF_CLIMATE]) == TuyaLocalClimate
     m_add_entities.assert_called_once()
 
 
 async def test_init_entry_as_secondary(hass):
-    """Test initialisation when fan is a secondary entity"""
+    """Test initialisation when climate is a secondary entity"""
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={
@@ -57,7 +56,7 @@ async def test_init_entry_as_secondary(hass):
     await async_setup_entry(hass, entry, m_add_entities)
     assert (
         type(hass.data[DOMAIN]["dummy"]["climate_dehumidifier_as_climate"])
-        == GoldairDehumidifier
+        == TuyaLocalClimate
     )
     m_add_entities.assert_called_once()
 

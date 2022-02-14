@@ -1,16 +1,33 @@
 from homeassistant.components.climate.const import (
+    CURRENT_HVAC_COOL,
+    CURRENT_HVAC_DRY,
+    CURRENT_HVAC_FAN,
+    CURRENT_HVAC_HEAT,
+    CURRENT_HVAC_IDLE,
+    CURRENT_HVAC_OFF,
     HVAC_MODE_COOL,
-    HVAC_MODE_DRY,
-    HVAC_MODE_FAN_ONLY,
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
+    PRESET_SLEEP,
+    PRESET_COMFORT,
     SUPPORT_FAN_MODE,
+    SUPPORT_PRESET_MODE,
+    SUPPORT_SWING_MODE,
     SUPPORT_TARGET_TEMPERATURE,
+    SWING_OFF,
+    SWING_VERTICAL,
 )
-from homeassistant.const import STATE_UNAVAILABLE, TEMP_CELSIUS, TEMP_FAHRENHEIT
+from homeassistant.const import (
+    STATE_UNAVAILABLE,
+    TEMP_CELSIUS,
+    TEMP_FAHRENHEIT,
+    TIME_HOURS,
+)
 
 from ..const import EBERG_QUBO_Q40HD_PAYLOAD
 from ..helpers import assert_device_properties_set
+from ..mixins.climate import TargetTemperatureTests
+from ..mixins.number import BasicNumberTests
 from .base_device_tests import TuyaDeviceTestCase
 
 POWER_DPS = "1"
@@ -20,12 +37,14 @@ HVACMODE_DPS = "4"
 FAN_DPS = "5"
 UNIT_DPS = "19"
 TIMER_DPS = "22"
-UNKNOWN25_DPS = "25"
-UNKNOWN30_DPS = "30"
-UNKNOWN101_DPS = "101"
+PRESET_DPS = "25"
+SWING_DPS = "30"
+HVACACTION_DPS = "101"
 
 
-class TestEbergQuboQ40HDHeatpump(TuyaDeviceTestCase):
+class TestEbergQuboQ40HDHeatpump(
+    BasicNumberTests, TargetTemperatureTests, TuyaDeviceTestCase
+):
     __test__ = True
 
     def setUp(self):
@@ -34,11 +53,29 @@ class TestEbergQuboQ40HDHeatpump(TuyaDeviceTestCase):
             EBERG_QUBO_Q40HD_PAYLOAD,
         )
         self.subject = self.entities.get("climate")
+        self.setUpTargetTemperature(
+            TEMPERATURE_DPS,
+            self.subject,
+            min=17,
+            max=30,
+        )
+        self.setUpBasicNumber(
+            TIMER_DPS,
+            self.entities.get("number_timer"),
+            max=24,
+            unit=TIME_HOURS,
+        )
+        self.mark_secondary(["number_timer"])
 
     def test_supported_features(self):
         self.assertEqual(
             self.subject.supported_features,
-            SUPPORT_TARGET_TEMPERATURE | SUPPORT_FAN_MODE,
+            (
+                SUPPORT_TARGET_TEMPERATURE
+                | SUPPORT_FAN_MODE
+                | SUPPORT_PRESET_MODE
+                | SUPPORT_SWING_MODE
+            ),
         )
 
     def test_icon(self):
@@ -47,10 +84,6 @@ class TestEbergQuboQ40HDHeatpump(TuyaDeviceTestCase):
         self.assertEqual(self.subject.icon, "mdi:snowflake")
         self.dps[HVACMODE_DPS] = "hot"
         self.assertEqual(self.subject.icon, "mdi:fire")
-        self.dps[HVACMODE_DPS] = "wet"
-        self.assertEqual(self.subject.icon, "mdi:water")
-        self.dps[HVACMODE_DPS] = "wind"
-        self.assertEqual(self.subject.icon, "mdi:fan")
         self.dps[POWER_DPS] = False
         self.assertEqual(self.subject.icon, "mdi:hvac-off")
 
@@ -60,76 +93,13 @@ class TestEbergQuboQ40HDHeatpump(TuyaDeviceTestCase):
         self.dps[UNIT_DPS] = "f"
         self.assertEqual(self.subject.temperature_unit, TEMP_FAHRENHEIT)
 
-    def test_target_temperature(self):
-        self.dps[TEMPERATURE_DPS] = 25
-        self.assertEqual(self.subject.target_temperature, 25)
-
-    def test_target_temperature_step(self):
-        self.assertEqual(self.subject.target_temperature_step, 1)
-
-    def test_minimum_target_temperature(self):
-        self.dps[UNIT_DPS] = "c"
-        self.assertEqual(self.subject.min_temp, 15)
+    def test_minimum_target_temperature_f(self):
         self.dps[UNIT_DPS] = "f"
-        self.assertEqual(self.subject.min_temp, 60)
+        self.assertEqual(self.subject.min_temp, 63)
 
-    def test_maximum_target_temperature(self):
-        self.dps[UNIT_DPS] = "c"
-        self.assertEqual(self.subject.max_temp, 30)
+    def test_maximum_target_temperature_f(self):
         self.dps[UNIT_DPS] = "f"
         self.assertEqual(self.subject.max_temp, 86)
-
-    async def test_legacy_set_temperature_with_temperature(self):
-        async with assert_device_properties_set(
-            self.subject._device, {TEMPERATURE_DPS: 24}
-        ):
-            await self.subject.async_set_temperature(temperature=24)
-
-    async def test_legacy_set_temperature_with_no_valid_properties(self):
-        await self.subject.async_set_temperature(something="else")
-        self.subject._device.async_set_property.assert_not_called()
-
-    async def test_set_target_temperature_succeeds_within_valid_range(self):
-        async with assert_device_properties_set(
-            self.subject._device,
-            {TEMPERATURE_DPS: 25},
-        ):
-            await self.subject.async_set_target_temperature(25)
-
-        self.dps[UNIT_DPS] = "f"
-        async with assert_device_properties_set(
-            self.subject._device,
-            {TEMPERATURE_DPS: 70},
-        ):
-            await self.subject.async_set_target_temperature(70)
-
-    async def test_set_target_temperature_rounds_value_to_closest_integer(self):
-        async with assert_device_properties_set(
-            self.subject._device, {TEMPERATURE_DPS: 23}
-        ):
-            await self.subject.async_set_target_temperature(22.6)
-
-    async def test_set_target_temperature_fails_outside_valid_range(self):
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(14\\) must be between 15 and 30"
-        ):
-            await self.subject.async_set_target_temperature(14)
-
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(31\\) must be between 15 and 30"
-        ):
-            await self.subject.async_set_target_temperature(31)
-
-        self.dps[UNIT_DPS] = "f"
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(59\\) must be between 60 and 86"
-        ):
-            await self.subject.async_set_target_temperature(59)
-
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(87\\) must be between 60 and 86"
-        ):
-            await self.subject.async_set_target_temperature(87)
 
     def test_current_temperature(self):
         self.dps[CURRENTTEMP_DPS] = 25
@@ -143,16 +113,10 @@ class TestEbergQuboQ40HDHeatpump(TuyaDeviceTestCase):
         self.dps[HVACMODE_DPS] = "hot"
         self.assertEqual(self.subject.hvac_mode, HVAC_MODE_HEAT)
 
-        self.dps[HVACMODE_DPS] = "wet"
-        self.assertEqual(self.subject.hvac_mode, HVAC_MODE_DRY)
-
-        self.dps[HVACMODE_DPS] = "wind"
-        self.assertEqual(self.subject.hvac_mode, HVAC_MODE_FAN_ONLY)
-
         self.dps[HVACMODE_DPS] = None
         self.assertEqual(self.subject.hvac_mode, STATE_UNAVAILABLE)
 
-        self.dps[HVACMODE_DPS] = "wind"
+        self.dps[HVACMODE_DPS] = "cold"
         self.dps[POWER_DPS] = False
         self.assertEqual(self.subject.hvac_mode, HVAC_MODE_OFF)
 
@@ -162,8 +126,6 @@ class TestEbergQuboQ40HDHeatpump(TuyaDeviceTestCase):
             [
                 HVAC_MODE_OFF,
                 HVAC_MODE_COOL,
-                HVAC_MODE_DRY,
-                HVAC_MODE_FAN_ONLY,
                 HVAC_MODE_HEAT,
             ],
         )
@@ -181,7 +143,6 @@ class TestEbergQuboQ40HDHeatpump(TuyaDeviceTestCase):
             await self.subject.async_set_hvac_mode(HVAC_MODE_OFF)
 
     def test_fan_mode(self):
-        self.dps[HVACMODE_DPS] = "cold"
         self.dps[FAN_DPS] = "low"
         self.assertEqual(self.subject.fan_mode, "low")
         self.dps[FAN_DPS] = "middle"
@@ -203,80 +164,143 @@ class TestEbergQuboQ40HDHeatpump(TuyaDeviceTestCase):
         )
 
     async def test_set_fan_mode_to_low(self):
-        self.dps[HVACMODE_DPS] = "cold"
         async with assert_device_properties_set(
             self.subject._device,
             {FAN_DPS: "low"},
         ):
             await self.subject.async_set_fan_mode("low")
 
-    async def test_set_fan_mode_to_low_fails_when_heating(self):
-        self.dps[HVACMODE_DPS] = "hot"
-        with self.assertRaises(AttributeError):
-            await self.subject.async_set_fan_mode("low")
-
     async def test_set_fan_mode_to_medium(self):
-        self.dps[HVACMODE_DPS] = "cold"
         async with assert_device_properties_set(
             self.subject._device,
             {FAN_DPS: "middle"},
         ):
             await self.subject.async_set_fan_mode("medium")
 
-    async def test_set_fan_mode_to_medium_fails_when_heating_or_drying(self):
-        self.dps[HVACMODE_DPS] = "hot"
-        with self.assertRaises(AttributeError):
-            await self.subject.async_set_fan_mode("medium")
-
-        self.dps[HVACMODE_DPS] = "wet"
-        with self.assertRaises(AttributeError):
-            await self.subject.async_set_fan_mode("medium")
-
     async def test_set_fan_mode_to_high(self):
-        self.dps[HVACMODE_DPS] = "cold"
         async with assert_device_properties_set(
             self.subject._device,
             {FAN_DPS: "high"},
         ):
             await self.subject.async_set_fan_mode("high")
 
-    async def test_set_fan_mode_to_high_fails_when_drying(self):
-        self.dps[HVACMODE_DPS] = "wet"
-        with self.assertRaises(AttributeError):
-            await self.subject.async_set_fan_mode("high")
-
     async def test_set_fan_mode_to_auto(self):
-        self.dps[HVACMODE_DPS] = "cold"
         async with assert_device_properties_set(
             self.subject._device,
             {FAN_DPS: "auto"},
         ):
             await self.subject.async_set_fan_mode("auto")
 
-    async def test_set_fan_mode_to_auto_fails_unless_cooling(self):
-        self.dps[HVACMODE_DPS] = "hot"
-        with self.assertRaises(AttributeError):
-            await self.subject.async_set_fan_mode("auto")
+    def test_swing_mode(self):
+        self.dps[SWING_DPS] = True
+        self.assertEqual(self.subject.swing_mode, SWING_VERTICAL)
+        self.dps[SWING_DPS] = False
+        self.assertEqual(self.subject.swing_mode, SWING_OFF)
 
-        self.dps[HVACMODE_DPS] = "wet"
-        with self.assertRaises(AttributeError):
-            await self.subject.async_set_fan_mode("auto")
+    def test_swing_modes(self):
+        self.assertCountEqual(
+            self.subject.swing_modes,
+            [
+                SWING_VERTICAL,
+                SWING_OFF,
+            ],
+        )
 
-        self.dps[HVACMODE_DPS] = "wind"
-        with self.assertRaises(AttributeError):
-            await self.subject.async_set_fan_mode("auto")
+    async def test_set_swing_mode_to_vertical(self):
+        async with assert_device_properties_set(
+            self.subject._device,
+            {SWING_DPS: True},
+        ):
+            await self.subject.async_set_swing_mode(SWING_VERTICAL)
 
-    def test_device_state_attribures(self):
+    async def test_set_swing_mode_to_off(self):
+        async with assert_device_properties_set(
+            self.subject._device,
+            {SWING_DPS: False},
+        ):
+            await self.subject.async_set_swing_mode(SWING_OFF)
+
+    def test_preset_mode(self):
+        self.dps[PRESET_DPS] = True
+        self.assertEqual(self.subject.preset_mode, PRESET_SLEEP)
+        self.dps[PRESET_DPS] = False
+        self.assertEqual(self.subject.preset_mode, PRESET_COMFORT)
+
+    def test_preset_modes(self):
+        self.assertCountEqual(
+            self.subject.preset_modes,
+            [
+                PRESET_COMFORT,
+                PRESET_SLEEP,
+            ],
+        )
+
+    async def test_set_preset_mode_to_sleep(self):
+        async with assert_device_properties_set(
+            self.subject._device,
+            {PRESET_DPS: True},
+        ):
+            await self.subject.async_set_preset_mode(PRESET_SLEEP)
+
+    async def test_set_preset_mode_to_normal(self):
+        async with assert_device_properties_set(
+            self.subject._device,
+            {PRESET_DPS: False},
+        ):
+            await self.subject.async_set_preset_mode(PRESET_COMFORT)
+
+    def test_hvac_action(self):
+        self.dps[POWER_DPS] = True
+        self.dps[HVACACTION_DPS] = "heat_s"
+        self.assertEqual(self.subject.hvac_action, CURRENT_HVAC_HEAT)
+
+        self.dps[HVACACTION_DPS] = "hot"
+        self.assertEqual(self.subject.hvac_action, CURRENT_HVAC_HEAT)
+
+        self.dps[HVACACTION_DPS] = "heating"
+        self.assertEqual(self.subject.hvac_action, CURRENT_HVAC_HEAT)
+
+        self.dps[HVACACTION_DPS] = "cool_s"
+        self.assertEqual(self.subject.hvac_action, CURRENT_HVAC_COOL)
+
+        self.dps[HVACACTION_DPS] = "cooling"
+        self.assertEqual(self.subject.hvac_action, CURRENT_HVAC_COOL)
+
+        self.dps[HVACACTION_DPS] = "anti-clockwise"
+        self.assertEqual(self.subject.hvac_action, CURRENT_HVAC_FAN)
+
+        self.dps[HVACACTION_DPS] = "ventilation"
+        self.assertEqual(self.subject.hvac_action, CURRENT_HVAC_FAN)
+
+        self.dps[HVACACTION_DPS] = "wind"
+        self.assertEqual(self.subject.hvac_action, CURRENT_HVAC_FAN)
+
+        self.dps[HVACACTION_DPS] = "appointment"
+        self.assertEqual(self.subject.hvac_action, CURRENT_HVAC_IDLE)
+
+        self.dps[HVACACTION_DPS] = "auto"
+        self.assertEqual(self.subject.hvac_action, CURRENT_HVAC_IDLE)
+
+        self.dps[HVACACTION_DPS] = "auto_clean"
+        self.assertEqual(self.subject.hvac_action, CURRENT_HVAC_IDLE)
+
+        self.dps[HVACACTION_DPS] = "eco"
+        self.assertEqual(self.subject.hvac_action, CURRENT_HVAC_IDLE)
+
+        self.dps[HVACACTION_DPS] = "wet"
+        self.assertEqual(self.subject.hvac_action, CURRENT_HVAC_DRY)
+
+        self.dps[HVACACTION_DPS] = "off"
+        self.assertEqual(self.subject.hvac_action, CURRENT_HVAC_IDLE)
+
+        self.dps[POWER_DPS] = False
+        self.assertEqual(self.subject.hvac_action, CURRENT_HVAC_OFF)
+
+    def test_extra_state_attributes(self):
         self.dps[TIMER_DPS] = 22
-        self.dps[UNKNOWN25_DPS] = True
-        self.dps[UNKNOWN30_DPS] = False
-        self.dps[UNKNOWN101_DPS] = "101"
         self.assertDictEqual(
-            self.subject.device_state_attributes,
+            self.subject.extra_state_attributes,
             {
                 "timer": 22,
-                "unknown_25": True,
-                "unknown_30": False,
-                "unknown_101": "101",
             },
         )

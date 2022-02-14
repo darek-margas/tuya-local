@@ -1,3 +1,4 @@
+from homeassistant.components.binary_sensor import DEVICE_CLASS_PROBLEM
 from homeassistant.components.climate.const import (
     FAN_HIGH,
     FAN_MEDIUM,
@@ -17,11 +18,14 @@ from homeassistant.components.humidifier.const import (
     MODE_SLEEP,
     SUPPORT_MODES,
 )
-from homeassistant.components.switch import DEVICE_CLASS_SWITCH
 from homeassistant.const import STATE_UNAVAILABLE
 
 from ..const import EANONS_HUMIDIFIER_PAYLOAD
 from ..helpers import assert_device_properties_set
+from ..mixins.binary_sensor import BasicBinarySensorTests
+from ..mixins.select import BasicSelectTests
+from ..mixins.sensor import BasicSensorTests
+from ..mixins.switch import BasicSwitchTests, SwitchableTests
 from .base_device_tests import TuyaDeviceTestCase
 
 FANMODE_DPS = "2"
@@ -35,15 +39,54 @@ CURRENTHUMID_DPS = "16"
 SWITCH_DPS = "22"
 
 
-class TestEanonsHumidifier(TuyaDeviceTestCase):
+class TestEanonsHumidifier(
+    BasicBinarySensorTests,
+    BasicSelectTests,
+    BasicSensorTests,
+    BasicSwitchTests,
+    SwitchableTests,
+    TuyaDeviceTestCase,
+):
     __test__ = True
 
     def setUp(self):
         self.setUpForConfig("eanons_humidifier.yaml", EANONS_HUMIDIFIER_PAYLOAD)
-        self.subject = self.entities["humidifier"]
-        self.climate = self.entities["climate"]
-        self.switch = self.entities["switch_uv_sterilization"]
-        self.fan = self.entities["fan_intensity"]
+        self.subject = self.entities.get("humidifier")
+        self.setUpSwitchable(HVACMODE_DPS, self.subject)
+        self.climate = self.entities.get("climate")
+        self.fan = self.entities.get("fan_intensity")
+        self.setUpBasicSwitch(SWITCH_DPS, self.entities.get("switch_uv_sterilization"))
+        self.setUpBasicSelect(
+            TIMERHR_DPS,
+            self.entities.get("select_timer"),
+            {
+                "cancel": "Off",
+                "1": "1 hour",
+                "2": "2 hours",
+                "3": "3 hours",
+                "4": "4 hours",
+                "5": "5 hours",
+                "6": "6 hours",
+                "7": "7 hours",
+                "8": "8 hours",
+                "9": "9 hours",
+                "10": "10 hours",
+                "11": "11 hours",
+                "12": "12 hours",
+            },
+        )
+        self.setUpBasicSensor(
+            TIMER_DPS,
+            self.entities.get("sensor_timer"),
+            unit="min",
+        )
+        self.setUpBasicBinarySensor(
+            ERROR_DPS,
+            self.entities.get("binary_sensor_tank"),
+            device_class=DEVICE_CLASS_PROBLEM,
+            testdata=(1, 0),
+        )
+        self.mark_secondary(["select_timer", "sensor_timer", "binary_sensor_tank"])
 
     def test_supported_features(self):
         self.assertEqual(
@@ -99,18 +142,6 @@ class TestEanonsHumidifier(TuyaDeviceTestCase):
     def test_climate_hvac_modes(self):
         self.assertCountEqual(self.climate.hvac_modes, [HVAC_MODE_OFF, HVAC_MODE_DRY])
 
-    def test_is_on(self):
-        self.dps[HVACMODE_DPS] = True
-        self.assertTrue(self.subject.is_on)
-        self.assertTrue(self.fan.is_on)
-        self.dps[HVACMODE_DPS] = False
-        self.assertFalse(self.subject.is_on)
-        self.assertFalse(self.fan.is_on)
-
-        self.dps[HVACMODE_DPS] = None
-        self.assertEqual(self.subject.is_on, STATE_UNAVAILABLE)
-        self.assertEqual(self.fan.is_on, STATE_UNAVAILABLE)
-
     async def test_climate_turn_on(self):
         async with assert_device_properties_set(
             self.climate._device, {HVACMODE_DPS: True}
@@ -122,18 +153,6 @@ class TestEanonsHumidifier(TuyaDeviceTestCase):
             self.climate._device, {HVACMODE_DPS: False}
         ):
             await self.climate.async_set_hvac_mode(HVAC_MODE_OFF)
-
-    async def test_turn_on(self):
-        async with assert_device_properties_set(
-            self.subject._device, {HVACMODE_DPS: True}
-        ):
-            await self.subject.async_turn_on()
-
-    async def test_turn_off(self):
-        async with assert_device_properties_set(
-            self.subject._device, {HVACMODE_DPS: False}
-        ):
-            await self.subject.async_turn_off()
 
     async def test_fan_turn_on(self):
         async with assert_device_properties_set(
@@ -234,12 +253,12 @@ class TestEanonsHumidifier(TuyaDeviceTestCase):
             await self.subject.async_set_mode(MODE_NORMAL)
             self.subject._device.anticipate_property_value.assert_not_called()
 
-    def test_climate_device_state_attributes(self):
+    def test_climate_extra_state_attributes(self):
         self.dps[ERROR_DPS] = 0
         self.dps[TIMERHR_DPS] = "cancel"
         self.dps[TIMER_DPS] = 0
         self.assertDictEqual(
-            self.climate.device_state_attributes,
+            self.climate.extra_state_attributes,
             {
                 "error": "OK",
                 "timer_hr": "cancel",
@@ -251,7 +270,7 @@ class TestEanonsHumidifier(TuyaDeviceTestCase):
         self.dps[TIMERHR_DPS] = "1"
         self.dps[TIMER_DPS] = 60
         self.assertDictEqual(
-            self.climate.device_state_attributes,
+            self.climate.extra_state_attributes,
             {
                 "error": "Water Level Low",
                 "timer_hr": "1",
@@ -259,7 +278,7 @@ class TestEanonsHumidifier(TuyaDeviceTestCase):
             },
         )
 
-    def test_device_state_attributes(self):
+    def test_extra_state_attributes(self):
         self.dps[ERROR_DPS] = 0
         self.dps[TIMERHR_DPS] = "cancel"
         self.dps[TIMER_DPS] = 0
@@ -267,7 +286,7 @@ class TestEanonsHumidifier(TuyaDeviceTestCase):
         self.dps[FANMODE_DPS] = "middle"
 
         self.assertDictEqual(
-            self.subject.device_state_attributes,
+            self.subject.extra_state_attributes,
             {
                 "error": "OK",
                 "timer_hr": "cancel",
@@ -331,51 +350,3 @@ class TestEanonsHumidifier(TuyaDeviceTestCase):
             {FANMODE_DPS: "small"},
         ):
             await self.climate.async_set_fan_mode(FAN_LOW)
-
-    def test_switch_class_is_switch(self):
-        self.assertEqual(self.switch.device_class, DEVICE_CLASS_SWITCH)
-
-    def test_switch_is_on(self):
-        self.dps[SWITCH_DPS] = True
-        self.assertTrue(self.switch.is_on)
-
-        self.dps[SWITCH_DPS] = False
-        self.assertFalse(self.switch.is_on)
-
-    def test_switch_is_on_when_unavailable(self):
-        self.dps[SWITCH_DPS] = None
-        self.assertEqual(self.switch.is_on, STATE_UNAVAILABLE)
-
-    async def test_switch_turn_on(self):
-        async with assert_device_properties_set(
-            self.switch._device, {SWITCH_DPS: True}
-        ):
-            await self.switch.async_turn_on()
-
-    async def test_switch_turn_off(self):
-        async with assert_device_properties_set(
-            self.switch._device, {SWITCH_DPS: False}
-        ):
-            await self.switch.async_turn_off()
-
-    async def test_toggle_turns_the_switch_on_when_it_was_off(self):
-        self.dps[SWITCH_DPS] = False
-
-        async with assert_device_properties_set(
-            self.switch._device, {SWITCH_DPS: True}
-        ):
-            await self.switch.async_toggle()
-
-    async def test_toggle_turns_the_switch_off_when_it_was_on(self):
-        self.dps[SWITCH_DPS] = True
-
-        async with assert_device_properties_set(
-            self.switch._device, {SWITCH_DPS: False}
-        ):
-            await self.switch.async_toggle()
-
-    def test_switch_returns_none_for_power(self):
-        self.assertIsNone(self.switch.current_power_w)
-
-    def test_switch_state_attributes_set(self):
-        self.assertEqual(self.switch.device_state_attributes, {})

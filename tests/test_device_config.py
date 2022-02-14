@@ -2,17 +2,13 @@
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import MagicMock
 
-from warnings import warn
-
 from custom_components.tuya_local.helpers.device_config import (
     available_configs,
     get_config,
-    possible_matches,
     TuyaDeviceConfig,
 )
 
 from .const import (
-    DEHUMIDIFIER_PAYLOAD,
     GPPH_HEATER_PAYLOAD,
     KOGAN_HEATER_PAYLOAD,
 )
@@ -78,71 +74,7 @@ class TestDeviceConfig(IsolatedAsyncioTestCase):
         voltage = cfg.primary_entity.find_dps("voltage_v")
         self.assertIsNone(voltage.values(mock_device))
 
-    # Test detection of all devices.
-
-    def _test_detect(self, payload, dev_type, legacy_class):
-        """Test that payload is detected as the correct type and class."""
-        matched = False
-        false_matches = []
-        quality = 0
-        for cfg in possible_matches(payload):
-            self.assertTrue(cfg.matches(payload))
-            if cfg.legacy_type == dev_type:
-                self.assertFalse(matched)
-                matched = True
-                quality = cfg.match_quality(payload)
-                if legacy_class is not None:
-                    cfg_class = cfg.primary_entity.legacy_class
-                    if cfg_class is None:
-                        for e in cfg.secondary_entities():
-                            cfg_class = e.legacy_class
-                            if cfg_class is not None:
-                                break
-
-                    self.assertEqual(
-                        cfg_class.__name__,
-                        legacy_class,
-                    )
-            else:
-                false_matches.append(cfg)
-
-        self.assertTrue(matched)
-        if quality < 100:
-            warn(f"{dev_type} detected with imperfect quality {quality}%")
-
-        best_q = 0
-        for cfg in false_matches:
-            q = cfg.match_quality(payload)
-            if q > best_q:
-                best_q = q
-
-        self.assertGreater(quality, best_q)
-
-        # Ensure the same correct config is returned when looked up by type
-        cfg = get_config(dev_type)
-        if legacy_class is not None:
-            cfg_class = cfg.primary_entity.legacy_class
-            if cfg_class is None:
-                for e in cfg.secondary_entities():
-                    cfg_class = e.legacy_class
-                    if cfg_class is not None:
-                        break
-            self.assertEqual(
-                cfg_class.__name__,
-                legacy_class,
-            )
-
-    def test_gpph_heater_detection(self):
-        """Test that GPPH heater can be detected from its sample payload."""
-        self._test_detect(GPPH_HEATER_PAYLOAD, "heater", "GoldairHeater")
-
-    def test_goldair_dehumidifier_detection(self):
-        """Test that Goldair dehumidifier can be detected from its sample payload."""
-        self._test_detect(
-            DEHUMIDIFIER_PAYLOAD,
-            "dehumidifier",
-            "GoldairDehumidifier",
-        )
-
-    # Non-legacy devices endup being the same as the tests in test_device.py, so
-    # skip them.
+    def test_config_returned(self):
+        """Test that config file is returned by config"""
+        cfg = get_config("kogan_switch")
+        self.assertEqual(cfg.config, "smartplugv1.yaml")

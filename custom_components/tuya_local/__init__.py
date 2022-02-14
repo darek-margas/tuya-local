@@ -163,6 +163,30 @@ async def async_migrate_entry(hass, entry: ConfigEntry):
         await async_migrate_entries(hass, entry.entry_id, update_unique_id)
         entry.version = 6
 
+    if entry.version == 6:
+        # Migrate some entity names to make them consistent for translations
+        opts = {**entry.data, **entry.options}
+        newopts = {**entry.options}
+        master = opts.get("switch_main_switch")
+        if master is not None:
+            newopts.pop("switch_main_switch", None)
+            newopts["switch_master"] = master
+        outlet1 = opts.get("switch_left_outlet")
+        outlet2 = opts.get("switch_right_outlet")
+        outlet1 = opts.get("switch_wall_switch_1") if outlet1 is None else outlet1
+        outlet2 = opts.get("switch_wall_switch_2") if outlet2 is None else outlet2
+        if outlet1 is not None:
+            newopts.pop("switch_left_outlet", None)
+            newopts.pop("switch_wall_switch_1", None)
+            newopts["switch_outlet_1"] = outlet1
+        if outlet2 is not None:
+            newopts.pop("switch_right_outlet", None)
+            newopts.pop("switch_wall_switch_2", None)
+            newopts["switch_outlet_2"] = outlet2
+
+        entry.options = {**newopts}
+        entry.version = 7
+
     return True
 
 

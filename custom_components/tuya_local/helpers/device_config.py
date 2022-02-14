@@ -76,7 +76,7 @@ class TuyaDeviceConfig:
     @property
     def primary_entity(self):
         """Return the primary type of entity for this device."""
-        return TuyaEntityConfig(self, self._config["primary_entity"])
+        return TuyaEntityConfig(self, self._config["primary_entity"], primary=True)
 
     def secondary_entities(self):
         """Iterate through entites for any secondary entites supported."""
@@ -139,9 +139,10 @@ class TuyaDeviceConfig:
 class TuyaEntityConfig:
     """Representation of an entity config for a supported entity."""
 
-    def __init__(self, device, config):
+    def __init__(self, device, config, primary=False):
         self._device = device
         self._config = config
+        self._is_primary = primary
 
     def name(self, base_name):
         """The friendly name for this entity."""
@@ -160,12 +161,8 @@ class TuyaEntityConfig:
             return device_uid
 
     @property
-    def legacy_class(self):
-        """Return the legacy device corresponding to this config."""
-        name = self._config.get("legacy_class")
-        if name is None:
-            return None
-        return locate("custom_components.tuya_local" + name)
+    def entity_category(self):
+        return self._config.get("category")
 
     @property
     def deprecated(self):
@@ -190,7 +187,7 @@ class TuyaEntityConfig:
 
     @property
     def config_id(self):
-        """The identifier for this entitiy in the config."""
+        """The identifier for this entity in the config."""
         own_name = self._config.get("name")
         if own_name:
             return f"{self.entity}_{slugify(own_name)}"
@@ -213,6 +210,11 @@ class TuyaEntityConfig:
                 icon = rule["icon"]
                 priority = rule["priority"]
         return icon
+
+    @property
+    def mode(self):
+        """Return the mode (used by Number entities)."""
+        return self._config.get("mode")
 
     def dps(self):
         """Iterate through the list of dps for this entity."""
@@ -248,8 +250,15 @@ class TuyaDpsConfig:
             "string": str,
             "float": float,
             "bitfield": int,
+            "json": str,
+            "base64": str,
+            "hex": str,
         }
         return types.get(t)
+
+    @property
+    def rawtype(self):
+        return self._config["type"]
 
     @property
     def name(self):
@@ -258,6 +267,16 @@ class TuyaDpsConfig:
     def get_value(self, device):
         """Return the value of the dps from the given device."""
         return self._map_from_dps(device.get_property(self.id), device)
+
+    def _match(self, matchdata, value):
+        """Return true val1 matches val2"""
+        if self.rawtype == "bitfield" and matchdata:
+            try:
+                return (int(value) & int(matchdata)) != 0
+            except BaseException:
+                return False
+        else:
+            return str(value) == str(matchdata)
 
     async def async_set_value(self, device, value):
         """Set the value of the dps in the given device to given value."""
@@ -280,9 +299,17 @@ class TuyaDpsConfig:
         for m in self._config["mapping"]:
             if "value" in m:
                 val.append(m["value"])
+            # If there is a mirroring with no value override, use current value
+            elif "value_mirror" in m:
+                r_dps = self._entity.find_dps(m["value_mirror"])
+                val.append(r_dps.get_value(device))
             for c in m.get("conditions", {}):
                 if "value" in c:
                     val.append(c["value"])
+                elif "value_mirror" in c:
+                    r_dps = self._entity.find_dps(c["value_mirror"])
+                    val.append(r_dps.get_value(device))
+
             cond = self._active_condition(m, device)
             if cond and "mapping" in cond:
                 _LOGGER.debug("Considering conditional mappings")
@@ -290,6 +317,9 @@ class TuyaDpsConfig:
                 for m2 in cond["mapping"]:
                     if "value" in m2:
                         c_val.append(m2["value"])
+                    elif "value_mirror" in m:
+                        r_dps = self._entity.find_dps(m["value_mirror"])
+                        c_val.append(r_dps.get_value(device))
                 # if given, the conditional mapping is an override
                 if c_val:
                     _LOGGER.debug(f"Overriding {self.name} values {val} with {c_val}")
@@ -349,7 +379,7 @@ class TuyaDpsConfig:
         return self._config.get("readonly", False)
 
     def invalid_for(self, value, device):
-        mapping = self._find_map_for_value(value)
+        mapping = self._find_map_for_value(value, device)
         if mapping:
             cond = self._active_condition(mapping, device)
             if cond:
@@ -364,12 +394,17 @@ class TuyaDpsConfig:
     def unit(self):
         return self._config.get("unit")
 
+    @property
+    def state_class(self):
+        """The state class of this measurement."""
+        return self._config.get("class")
+
     def _find_map_for_dps(self, value):
         default = None
         for m in self._config.get("mapping", {}):
             if "dps_val" not in m:
                 default = m
-            elif str(m["dps_val"]) == str(value):
+            elif self._match(m["dps_val"], value):
                 return m
         return default
 
@@ -390,6 +425,7 @@ class TuyaDpsConfig:
             if not isinstance(scale, (int, float)):
                 scale = 1
             redirect = mapping.get("value_redirect")
+            mirror = mapping.get("value_mirror")
             replaced = "value" in mapping
             result = mapping.get("value", result)
             cond = self._active_condition(mapping, device)
@@ -400,7 +436,7 @@ class TuyaDpsConfig:
                 result = cond.get("value", result)
                 scale = cond.get("scale", scale)
                 redirect = cond.get("value_redirect", redirect)
-
+                mirror = cond.get("value_mirror", mirror)
                 for m in cond.get("mapping", {}):
                     if str(m.get("dps_val")) == str(result):
                         replaced = "value" in m
@@ -409,6 +445,9 @@ class TuyaDpsConfig:
             if redirect:
                 _LOGGER.debug(f"Redirecting {self.name} to {redirect}")
                 r_dps = self._entity.find_dps(redirect)
+                return r_dps.get_value(device)
+            if mirror:
+                r_dps = self._entity.find_dps(mirror)
                 return r_dps.get_value(device)
 
             if scale != 1 and isinstance(result, (int, float)):
@@ -426,16 +465,25 @@ class TuyaDpsConfig:
 
         return result
 
-    def _find_map_for_value(self, value):
+    def _find_map_for_value(self, value, device):
         default = None
         for m in self._config.get("mapping", {}):
             if "dps_val" not in m:
                 default = m
             if "value" in m and str(m["value"]) == str(value):
                 return m
-            for c in m.get("conditions", {}):
-                if "value" in c and c["value"] == value:
+            if "value" not in m and "value_mirror" in m:
+                r_dps = self._entity.find_dps(m["value_mirror"])
+                if str(r_dps.get_value(device)) == str(value):
                     return m
+
+            for c in m.get("conditions", {}):
+                if "value" in c and str(c["value"]) == str(value):
+                    return m
+                if "value" not in c and "value_mirror" in c:
+                    r_dps = self._entity.find_dps(c["value_mirror"])
+                    if str(r_dps.get_value(device)) == str(value):
+                        return m
         return default
 
     def _active_condition(self, mapping, device, value=None):
@@ -459,7 +507,7 @@ class TuyaDpsConfig:
         """Return the dps values that would be set when setting to value"""
         result = value
         dps_map = {}
-        mapping = self._find_map_for_value(value)
+        mapping = self._find_map_for_value(value, device)
         if mapping:
             replaced = False
             scale = mapping.get("scale", 1)
@@ -475,7 +523,13 @@ class TuyaDpsConfig:
             # Conditions may have side effect of setting another value.
             cond = self._active_condition(mapping, device, value)
             if cond:
-                if cond.get("value") == value:
+                cval = cond.get("value")
+                if cval is None:
+                    r_dps = cond.get("value_mirror")
+                    if r_dps:
+                        cval = self._entity.find_dps(r_dps).get_value(device)
+
+                if cval == value:
                     c_dps = self._entity.find_dps(mapping["constraint"])
                     c_val = c_dps._map_from_dps(
                         cond.get("dps_val", device.get_property(c_dps.id)),
@@ -500,7 +554,7 @@ class TuyaDpsConfig:
             if scale != 1 and isinstance(result, (int, float)):
                 _LOGGER.debug(f"Scaling {result} by {scale}")
                 result = result * scale
-                remap = self._find_map_for_value(result)
+                remap = self._find_map_for_value(result, device)
                 if remap and "dps_val" in remap and "dps_val" not in mapping:
                     result = remap["dps_val"]
                 replaced = True
@@ -508,7 +562,7 @@ class TuyaDpsConfig:
             if step and isinstance(result, (int, float)):
                 _LOGGER.debug(f"Stepping {result} to {step}")
                 result = step * round(float(result) / step)
-                remap = self._find_map_for_value(result)
+                remap = self._find_map_for_value(result, device)
                 if remap and "dps_val" in remap and "dps_val" not in mapping:
                     result = remap["dps_val"]
                 replaced = True

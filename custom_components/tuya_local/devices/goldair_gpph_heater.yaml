@@ -2,7 +2,6 @@ name: Goldair GPPH Heater
 legacy_type: heater
 primary_entity:
   entity: climate
-  legacy_class: ".heater.climate.GoldairHeater"
   dps:
     - id: 1
       type: boolean
@@ -61,9 +60,12 @@ primary_entity:
       type: string
       mapping:
         - dps_val: "stop"
-          value: "Stop"
           icon: "mdi:radiator-disabled"
           icon_priority: 2
+          constraint: swing_mode
+          conditions:
+            - dps_val: stop
+              value: "Stop"
         - dps_val: "1"
           value: "1"
         - dps_val: "2"
@@ -85,6 +87,11 @@ primary_entity:
       type: string
       mapping:
         - dps_val: "stop"
+          constraint: power_level
+          conditions:
+            - dps_val: stop
+              value: "Stop"
+          value-redirect: power_level
           value: "Stop"
         - dps_val: "auto"
           value: "Auto"
@@ -121,6 +128,7 @@ primary_entity:
 secondary_entities:
   - entity: light
     name: Display
+    category: config
     dps:
       - id: 104
         type: boolean
@@ -132,6 +140,7 @@ secondary_entities:
         name: switch
   - entity: lock
     name: Child Lock
+    category: config
     dps:
       - id: 6
         type: boolean
@@ -141,3 +150,52 @@ secondary_entities:
             icon: "mdi:hand-back-right-off"
           - dps_val: false
             icon: "mdi:hand-back-right"
+  - entity: number
+    name: Timer
+    icon: "mdi:timer"
+    category: config
+    dps:
+      - id: 102
+        type: integer
+        name: value
+        unit: min
+        range:
+          min: 0
+          max: 1440
+        mapping:
+          - step: 60
+  - entity: sensor
+    name: Power Level
+    class: power_factor
+    icon: "mdi:signal"
+    category: diagnostic
+    dps:
+      - id: 101
+        type: string
+        name: sensor
+        unit: "%"
+        mapping:
+          - dps_val: "stop"
+            value: 0
+          - dps_val: "1"
+            value: 20
+          - dps_val: "2"
+            value: 40
+          - dps_val: "3"
+            value: 60
+          - dps_val: "4"
+            value: 80
+          - dps_val: "5"
+            value: 100
+  - entity: binary_sensor
+    name: Error
+    class: problem
+    category: diagnostic
+    dps:
+      - id: 12
+        name: sensor
+        type: bitfield
+        mapping:
+          - dps_val: 0
+            value: false
+          - value: true

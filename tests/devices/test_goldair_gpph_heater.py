@@ -1,5 +1,4 @@
-from unittest import skip
-
+from homeassistant.components.binary_sensor import DEVICE_CLASS_PROBLEM
 from homeassistant.components.climate.const import (
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
@@ -7,13 +6,22 @@ from homeassistant.components.climate.const import (
     SUPPORT_SWING_MODE,
     SUPPORT_TARGET_TEMPERATURE,
 )
-from homeassistant.components.light import COLOR_MODE_ONOFF
-from homeassistant.components.lock import STATE_LOCKED, STATE_UNLOCKED
 
-from homeassistant.const import STATE_UNAVAILABLE
+from homeassistant.const import (
+    DEVICE_CLASS_POWER_FACTOR,
+    PERCENTAGE,
+    STATE_UNAVAILABLE,
+    TIME_MINUTES,
+)
 
 from ..const import GPPH_HEATER_PAYLOAD
 from ..helpers import assert_device_properties_set
+from ..mixins.binary_sensor import BasicBinarySensorTests
+from ..mixins.climate import TargetTemperatureTests
+from ..mixins.light import BasicLightTests
+from ..mixins.lock import BasicLockTests
+from ..mixins.number import BasicNumberTests
+from ..mixins.sensor import BasicSensorTests
 from .base_device_tests import TuyaDeviceTestCase
 
 HVACMODE_DPS = "1"
@@ -30,14 +38,57 @@ SWING_DPS = "105"
 ECOTEMP_DPS = "106"
 
 
-class TestGoldairHeater(TuyaDeviceTestCase):
+class TestGoldairHeater(
+    BasicBinarySensorTests,
+    BasicLightTests,
+    BasicLockTests,
+    BasicNumberTests,
+    BasicSensorTests,
+    TargetTemperatureTests,
+    TuyaDeviceTestCase,
+):
     __test__ = True
 
     def setUp(self):
         self.setUpForConfig("goldair_gpph_heater.yaml", GPPH_HEATER_PAYLOAD)
         self.subject = self.entities.get("climate")
-        self.light = self.entities.get("light_display")
-        self.lock = self.entities.get("lock_child_lock")
+        self.setUpTargetTemperature(
+            TEMPERATURE_DPS,
+            self.subject,
+            min=5,
+            max=35,
+        )
+        self.setUpBasicLight(LIGHT_DPS, self.entities.get("light_display"))
+        self.setUpBasicLock(LOCK_DPS, self.entities.get("lock_child_lock"))
+        self.setUpBasicNumber(
+            TIMER_DPS,
+            self.entities.get("number_timer"),
+            max=1440,
+            step=60,
+            unit=TIME_MINUTES,
+        )
+        self.setUpBasicSensor(
+            POWERLEVEL_DPS,
+            self.entities.get("sensor_power_level"),
+            unit=PERCENTAGE,
+            device_class=DEVICE_CLASS_POWER_FACTOR,
+            testdata=("2", 40),
+        )
+        self.setUpBasicBinarySensor(
+            ERROR_DPS,
+            self.entities.get("binary_sensor_error"),
+            device_class=DEVICE_CLASS_PROBLEM,
+            testdata=(1, 0),
+        )
+        self.mark_secondary(
+            [
+                "light_display",
+                "lock_child_lock",
+                "number_timer",
+                "sensor_power_level",
+                "binary_sensor_error",
+            ]
+        )
 
     def test_supported_features(self):
         self.assertEqual(
@@ -61,11 +112,6 @@ class TestGoldairHeater(TuyaDeviceTestCase):
             self.subject.temperature_unit, self.subject._device.temperature_unit
         )
 
-    def test_target_temperature(self):
-        self.dps[TEMPERATURE_DPS] = 25
-        self.dps[PRESET_DPS] = "C"
-        self.assertEqual(self.subject.target_temperature, 25)
-
     def test_target_temperature_in_eco_and_af_modes(self):
         self.dps[TEMPERATURE_DPS] = 25
         self.dps[ECOTEMP_DPS] = 15
@@ -75,9 +121,6 @@ class TestGoldairHeater(TuyaDeviceTestCase):
 
         self.dps[PRESET_DPS] = "AF"
         self.assertIs(self.subject.target_temperature, None)
-
-    def test_target_temperature_step(self):
-        self.assertEqual(self.subject.target_temperature_step, 1)
 
     def test_minimum_temperature(self):
         self.dps[PRESET_DPS] = "C"
@@ -99,12 +142,6 @@ class TestGoldairHeater(TuyaDeviceTestCase):
         self.dps[PRESET_DPS] = "AF"
         self.assertIs(self.subject.max_temp, 5)
 
-    async def test_legacy_set_temperature_with_temperature(self):
-        async with assert_device_properties_set(
-            self.subject._device, {TEMPERATURE_DPS: 25}
-        ):
-            await self.subject.async_set_temperature(temperature=25)
-
     async def test_legacy_set_temperature_with_preset_mode(self):
         async with assert_device_properties_set(
             self.subject._device, {PRESET_DPS: "C"}
@@ -123,18 +160,6 @@ class TestGoldairHeater(TuyaDeviceTestCase):
                 temperature=25, preset_mode="comfort"
             )
 
-    async def test_legacy_set_temperature_with_no_valid_properties(self):
-        await self.subject.async_set_temperature(something="else")
-        self.subject._device.async_set_property.assert_not_called()
-
-    async def test_set_target_temperature_in_comfort_mode(self):
-        self.dps[PRESET_DPS] = "C"
-
-        async with assert_device_properties_set(
-            self.subject._device, {TEMPERATURE_DPS: 25}
-        ):
-            await self.subject.async_set_target_temperature(25)
-
     async def test_set_target_temperature_in_eco_mode(self):
         self.dps[PRESET_DPS] = "ECO"
 
@@ -142,26 +167,6 @@ class TestGoldairHeater(TuyaDeviceTestCase):
             self.subject._device, {ECOTEMP_DPS: 15}
         ):
             await self.subject.async_set_target_temperature(15)
-
-    async def test_set_target_temperature_rounds_value_to_closest_integer(self):
-        async with assert_device_properties_set(
-            self.subject._device,
-            {TEMPERATURE_DPS: 25},
-        ):
-            await self.subject.async_set_target_temperature(24.6)
-
-    async def test_set_target_temperature_fails_outside_valid_range_in_comfort(self):
-        self.dps[PRESET_DPS] = "C"
-
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(4\\) must be between 5 and 35"
-        ):
-            await self.subject.async_set_target_temperature(4)
-
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(36\\) must be between 5 and 35"
-        ):
-            await self.subject.async_set_target_temperature(36)
 
     async def test_set_target_temperature_fails_outside_valid_range_in_eco(self):
         self.dps[PRESET_DPS] = "ECO"
@@ -286,11 +291,10 @@ class TestGoldairHeater(TuyaDeviceTestCase):
             ["Stop", "1", "2", "3", "4", "5", "Auto"],
         )
 
-    @skip("Paired settings not supported yet")
     async def test_set_power_level_to_stop(self):
         async with assert_device_properties_set(
             self.subject._device,
-            {POWERLEVEL_DPS: "stop"},
+            {POWERLEVEL_DPS: "stop", SWING_DPS: "stop"},
         ):
             await self.subject.async_set_swing_mode("Stop")
 
@@ -308,19 +312,14 @@ class TestGoldairHeater(TuyaDeviceTestCase):
         ):
             await self.subject.async_set_swing_mode("3")
 
-    @skip("Restriction to mapped values not supported yet")
-    async def test_set_power_level_to_invalid_value_raises_error(self):
-        with self.assertRaisesRegex(ValueError, "Invalid power level: unknown"):
-            await self.subject.async_set_swing_mode("unknown")
-
-    def test_device_state_attributes(self):
+    def test_extra_state_attributes(self):
         self.dps[ERROR_DPS] = "something"
         self.dps[TIMER_DPS] = 5
         self.dps[TIMERACT_DPS] = True
         self.dps[POWERLEVEL_DPS] = 4
 
         self.assertDictEqual(
-            self.subject.device_state_attributes,
+            self.subject.extra_state_attributes,
             {
                 "error": "something",
                 "timer": 5,
@@ -329,83 +328,9 @@ class TestGoldairHeater(TuyaDeviceTestCase):
             },
         )
 
-    def test_lock_state(self):
-        self.dps[LOCK_DPS] = True
-        self.assertEqual(self.lock.state, STATE_LOCKED)
-
-        self.dps[LOCK_DPS] = False
-        self.assertEqual(self.lock.state, STATE_UNLOCKED)
-
-        self.dps[LOCK_DPS] = None
-        self.assertEqual(self.lock.state, STATE_UNAVAILABLE)
-
-    def test_lock_is_locked(self):
-        self.dps[LOCK_DPS] = True
-        self.assertTrue(self.lock.is_locked)
-
-        self.dps[LOCK_DPS] = False
-        self.assertFalse(self.lock.is_locked)
-
-        self.dps[LOCK_DPS] = None
-        self.assertFalse(self.lock.is_locked)
-
-    async def test_lock_locks(self):
-        async with assert_device_properties_set(self.lock._device, {LOCK_DPS: True}):
-            await self.lock.async_lock()
-
-    async def test_lock_unlocks(self):
-        async with assert_device_properties_set(self.lock._device, {LOCK_DPS: False}):
-            await self.lock.async_unlock()
-
-    def test_light_supported_color_modes(self):
-        self.assertCountEqual(
-            self.light.supported_color_modes,
-            [COLOR_MODE_ONOFF],
-        )
-
-    def test_light_color_mode(self):
-        self.assertEqual(self.light.color_mode, COLOR_MODE_ONOFF)
-
-    def test_light_has_no_brightness(self):
-        self.assertIsNone(self.light.brightness)
-
-    def test_light_has_no_effects(self):
-        self.assertIsNone(self.light.effect_list)
-        self.assertIsNone(self.light.effect)
-
     def test_light_icon(self):
         self.dps[LIGHT_DPS] = True
-        self.assertEqual(self.light.icon, "mdi:led-on")
+        self.assertEqual(self.basicLight.icon, "mdi:led-on")
 
         self.dps[LIGHT_DPS] = False
-        self.assertEqual(self.light.icon, "mdi:led-off")
-
-    def test_light_is_on(self):
-        self.dps[LIGHT_DPS] = True
-        self.assertEqual(self.light.is_on, True)
-
-        self.dps[LIGHT_DPS] = False
-        self.assertEqual(self.light.is_on, False)
-
-    def test_light_state_attributes(self):
-        self.assertEqual(self.light.device_state_attributes, {})
-
-    async def test_light_turn_on(self):
-        async with assert_device_properties_set(self.light._device, {LIGHT_DPS: True}):
-            await self.light.async_turn_on()
-
-    async def test_light_turn_off(self):
-        async with assert_device_properties_set(self.light._device, {LIGHT_DPS: False}):
-            await self.light.async_turn_off()
-
-    async def test_toggle_turns_the_light_on_when_it_was_off(self):
-        self.dps[LIGHT_DPS] = False
-
-        async with assert_device_properties_set(self.light._device, {LIGHT_DPS: True}):
-            await self.light.async_toggle()
-
-    async def test_toggle_turns_the_light_off_when_it_was_on(self):
-        self.dps[LIGHT_DPS] = True
-
-        async with assert_device_properties_set(self.light._device, {LIGHT_DPS: False}):
-            await self.light.async_toggle()
+        self.assertEqual(self.basicLight.icon, "mdi:led-off")

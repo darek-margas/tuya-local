@@ -13,8 +13,8 @@ Further device support has been made with the assistance of users.  Please consi
 - [etamtlosz](https://github.com/etamtlosz) and [KiLLeRRaT](https://github.com/KiLLeRRaT) for their support and dev work towards GECO and GPCV heaters.
 - [botts7](https://github.com/botts7) for support towards widening Kogan SmartPlug support.
 - [awaismun](https://github.com/awaismun) for assistance in supporting Andersson heaters.
-- [FeikoJoosten](https://github.com/FeikoJoosten) for development of support for Eurom heaters.
-- [Xeovar](https://github.com/Xeovar) for assistance in supporting Purline M100 heaters and Garden PAC pool heatpumps.
+- [FeikoJoosten](https://github.com/FeikoJoosten) for development of support for Eurom Mon Soleil 600 heaters.
+- [Xeovar](https://github.com/Xeovar) for assistance in supporting Purline M100 heaters, Garden PAC pool heatpumps and Qoto sprinklers.
 - [paulmfclark](https://github.com/paulmfclark) for assistance in supporting Remora Inverter pool heatpumps
 - [cartman10](https://github.com/cartman10) for assistance with BWT FI 45 pool heater.
  - [superman110](https://github.com/superman110) for assistance in supporting Eanons/purenjoy humidifier.
@@ -30,7 +30,7 @@ Further device support has been made with the assistance of users.  Please consi
  - [jorgenDK](https://github.com/jorgenDK) for assistance in supporting TroniTechnik Air Conditioner, and thanks for the coffee!
  - [Fannangir](https://github.com/Fannangir) for assistance in supporting Tadiran Wind Air Conditioner.
  - [marrold](https://github.com/marrold) for contributing support for ElectriQ CD20PRO dehumidifiers.
- - [Uaeguy](https://github.com/Uaeguy) for assistance in supporting Beca BHP-6000 and Siswell T29UTK thermostats, and thanks for the coffee!
+ - [Uaeguy](https://github.com/Uaeguy) for assistance in supporting Beca BHP-6000, Siswell T29UTK and Owon PCT513 thermostats, and thanks for the coffee!
  - [Johnnybyzhang](https://github.com/Johnnybyzhang) for assistance in supporting Lexy F501 fans.
  - [domgrimm](https://github.com/domgrimm) for assistance in supporting newer models of Kogan heater.
  - [EKCJ](https://github.com/EKCJ) for contributing support for ElectriQ DESD9LW dehumidifiers.
@@ -47,3 +47,34 @@ Further device support has been made with the assistance of users.  Please consi
  - [MrDeon](https://github.com/MrDeon) for assistance in supporting Kogan KAWFPAC09YA air conditioners.
  - [SatarisGIT](https://github.com/SatarisGIT) for assistance in supporting Eberg Qubo Q40HD portable heatpump.
  - [lucaxxaa](https://github.com/lucaxxaa) for assistance in supporting Beca BHT-002 thermostat.
+ - [nickdos](https://github.com/nickdos) for assistance in supporting Stirling FS1-40DC fan.
+ - [Skro11-ru](https://github.com/Skro11-ru) for assistance in supporting Moes BHT-002 variant without external temperature sensor.
+ - [novisys](https://github.com/novisys) for clarifications about BHT-6000 thermostat functionality.
+ - [nzcodarnoc](https://github.com/nzcodarnoc) for contributing support for Kogan KASHMFP heaters.
+ - [pascaltippelt](https://github.com/pascaltippelt) for assistance in supporting Minco MH-1823 thermostat.
+ - [voed](https://github.com/voed) for assistance in supporting Advanced Energy monitoring smart switch, based on CBE smart switch but seeming to follow a Tuya Standard Template, so probably applicable to others.
+ - [myevit](https://github.com/myevit) for assistance in supporting simple garage doors.
+ - [maartendamen](https://github.com/maartendamen) for assistance in supporting Eurom Mon Soleil 601 heaters.
+ - [TeddyLafrite](https://github.com/TeddyLafrite) for assistance in supporting Nedis HTPL20F heaters.
+ - [mvroosmalen1970](https://github.com/mvroosmalen1970) for assistance in supporting Eurom SaniWall 2000 heaters.
+ - [petrkotek](https://github.com/petrkotek) for contributing support for Madimack Elite V3 pool heatpumps.
+ - [irakhlin](https://github.com/irakhlin) for contributing support for Aspen ASP200 fans.
+ - [vampywiz17](https://github.com/vampywiz17) for contributing support for TMWF02 fan controllers, Digoo and Woox smartplugs and powerstrips and simple switches with timers.
+ - [awaldram](https://github.com/awaldram) for confirming BHT-3000 support.
+ - [bob-tm](https://github.com/bob-tm) for contributing support from Wetair WAW-H1210LW humidifiers.
+ - [shakin89](https://github.com/shakin89) for assistance in supporting Beca BAC-002 thermostats.
+ - [PaulJoosten](https://github.com/PaulJoosten) for assistance in figuring out the similarities and capabilities of different Eurom heaters.
+ - [jdavidr17](https://github.com/jdavidr17) for assistance with discovering timer parameters for switches.
+ - [miannelli516](https://github.com/miannelli516) for assistance with TR9B thermostats.
+ - [edwinyoo44](https://github.com/edwinyoo44) for contributing support for JJPro JPD01 and JPD02 dehumidifiers and assistance with Poiema One purifiers.
+ - [mpetcuRO](https://github.com/mpetcuRO) for assistance with Hysen HT08WE-2 thermometers.
+ - [Paul-C-S](https://github.com/Paul-C-S) for assistance with Ecostrad Accent iQ heaters and contributing support for iQ Ceramic radiators.
+ - [WildeRNS](https://github.com/WildeRNS) for assistance with Nashone MTS-700-WB thermostat smartplugs, SmartMCB Energy meter.
+ - [ishioni](https://github.com/ishioni) for contributing support for Eberg Cooly C32HD air conditioner.
+ - [Gekko47](https://github.com/Gekko47) for contributing support for ElectriQ CD12v2 dehumidifiers.
+ - [andreq](https://github.com/andreq) for assistance with Inkbird ITC-308 thermostats.
+ - [dlosito](https://github.com/dlosito) for assistance with a second variant of Awow TH213 thermostat.
+ - [UrZdcw9](https://github.com/UrZdcw9) for assistance with Arlec ceiling fan with light.
+ - [dlosito](https://github.com/dlosito) for assistance with Lefant M213 vacuum cleaners.
+- [kramttocs](https://github.com/kramttocs) for assistance with Kyvol E30 vacuum cleaners.
+- [dieantu](https://github.com/dieantu) for contributing support for Himox H06 purifiers.

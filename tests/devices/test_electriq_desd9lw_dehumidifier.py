@@ -9,10 +9,18 @@ from homeassistant.components.climate.const import (
     SUPPORT_TARGET_HUMIDITY,
     SUPPORT_TARGET_TEMPERATURE,
 )
-from homeassistant.const import STATE_UNAVAILABLE
+from homeassistant.const import (
+    DEVICE_CLASS_HUMIDITY,
+    PERCENTAGE,
+    STATE_UNAVAILABLE,
+)
 
 from ..const import ELECTRIQ_DESD9LW_DEHUMIDIFIER_PAYLOAD
 from ..helpers import assert_device_properties_set
+from ..mixins.climate import TargetTemperatureTests
+from ..mixins.light import BasicLightTests
+from ..mixins.sensor import BasicSensorTests
+from ..mixins.switch import BasicSwitchTests
 from .base_device_tests import TuyaDeviceTestCase
 
 POWER_DPS = "1"
@@ -27,7 +35,13 @@ LIGHT_DPS = "15"
 TEMPERATURE_DPS = "101"
 
 
-class TestElectriqDESD9LWDehumidifier(TuyaDeviceTestCase):
+class TestElectriqDESD9LWDehumidifier(
+    BasicLightTests,
+    BasicSensorTests,
+    BasicSwitchTests,
+    TargetTemperatureTests,
+    TuyaDeviceTestCase,
+):
     __test__ = True
 
     def setUp(self):
@@ -36,8 +50,21 @@ class TestElectriqDESD9LWDehumidifier(TuyaDeviceTestCase):
             ELECTRIQ_DESD9LW_DEHUMIDIFIER_PAYLOAD,
         )
         self.subject = self.entities.get("climate")
-        self.light = self.entities.get("light_uv_sterilization")
-        self.switch = self.entities.get("switch_ionizer")
+        self.setUpTargetTemperature(
+            TEMPERATURE_DPS,
+            self.subject,
+            min=16,
+            max=30,
+        )
+        self.setUpBasicLight(LIGHT_DPS, self.entities.get("light_uv_sterilization"))
+        self.setUpBasicSwitch(SWITCH_DPS, self.entities.get("switch_ionizer"))
+        self.setUpBasicSensor(
+            CURRENTHUM_DPS,
+            self.entities.get("sensor_current_humidity"),
+            unit=PERCENTAGE,
+            device_class=DEVICE_CLASS_HUMIDITY,
+            state_class="measurement",
+        )
 
     def test_supported_features(self):
         self.assertEqual(
@@ -65,46 +92,6 @@ class TestElectriqDESD9LWDehumidifier(TuyaDeviceTestCase):
         self.assertEqual(
             self.subject.temperature_unit, self.subject._device.temperature_unit
         )
-
-    def test_target_temperature(self):
-        self.dps[TEMPERATURE_DPS] = 24
-        self.assertEqual(self.subject.target_temperature, 24)
-
-    def test_target_temperature_step(self):
-        self.assertEqual(self.subject.target_temperature_step, 1)
-
-    def test_minimum_target_temperature(self):
-        self.assertEqual(self.subject.min_temp, 16)
-
-    def test_maximum_target_temperature(self):
-        self.assertEqual(self.subject.max_temp, 30)
-
-    async def test_legacy_set_temperature_with_temperature(self):
-        async with assert_device_properties_set(
-            self.subject._device, {TEMPERATURE_DPS: 22}
-        ):
-            await self.subject.async_set_temperature(temperature=22)
-
-    async def test_legacy_set_temperature_with_no_valid_properties(self):
-        await self.subject.async_set_temperature(something="else")
-        self.subject._device.async_set_property.assert_not_called()
-
-    async def test_set_target_temperature_rounds_value_to_closest_integer(self):
-        async with assert_device_properties_set(
-            self.subject._device, {TEMPERATURE_DPS: 23}
-        ):
-            await self.subject.async_set_target_temperature(22.6)
-
-    async def test_set_target_temperature_fails_outside_valid_range(self):
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(15\\) must be between 16 and 30"
-        ):
-            await self.subject.async_set_target_temperature(15)
-
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(31\\) must be between 16 and 30"
-        ):
-            await self.subject.async_set_target_temperature(31)
 
     def test_current_temperature(self):
         self.dps[CURRENTTEMP_DPS] = 21
@@ -286,82 +273,8 @@ class TestElectriqDESD9LWDehumidifier(TuyaDeviceTestCase):
         ):
             await self.subject.async_set_swing_mode("off")
 
-    def test_light_state_attributes(self):
-        self.assertEqual(self.light.device_state_attributes, {})
-
-    def test_light_is_on(self):
-        self.dps[LIGHT_DPS] = True
-        self.assertTrue(self.light.is_on)
-        self.dps[LIGHT_DPS] = False
-        self.assertFalse(self.light.is_on)
-
-    async def test_light_turn_on(self):
-        async with assert_device_properties_set(
-            self.light._device,
-            {LIGHT_DPS: True},
-        ):
-            await self.light.async_turn_on()
-
-    async def test_light_turn_off(self):
-        async with assert_device_properties_set(
-            self.light._device,
-            {LIGHT_DPS: False},
-        ):
-            await self.light.async_turn_off()
-
-    async def test_toggle_turns_the_light_on_when_it_was_off(self):
-        self.dps[LIGHT_DPS] = False
-
-        async with assert_device_properties_set(self.light._device, {LIGHT_DPS: True}):
-            await self.light.async_toggle()
-
-    async def test_toggle_turns_the_light_off_when_it_was_on(self):
-        self.dps[LIGHT_DPS] = True
-
-        async with assert_device_properties_set(self.light._device, {LIGHT_DPS: False}):
-            await self.light.async_toggle()
-
     def test_light_icon(self):
-        self.assertEqual(self.light.icon, "mdi:solar-power")
-
-    def test_switch_state_attributes(self):
-        self.assertEqual(self.switch.device_state_attributes, {})
-
-    def test_switch_is_on(self):
-        self.dps[SWITCH_DPS] = True
-        self.assertTrue(self.switch.is_on)
-        self.dps[SWITCH_DPS] = False
-        self.assertFalse(self.switch.is_on)
-
-    async def test_switch_turn_on(self):
-        async with assert_device_properties_set(
-            self.switch._device,
-            {SWITCH_DPS: True},
-        ):
-            await self.switch.async_turn_on()
-
-    async def test_switch_turn_off(self):
-        async with assert_device_properties_set(
-            self.switch._device,
-            {SWITCH_DPS: False},
-        ):
-            await self.switch.async_turn_off()
-
-    async def test_toggle_turns_the_switch_on_when_it_was_off(self):
-        self.dps[SWITCH_DPS] = False
-
-        async with assert_device_properties_set(
-            self.switch._device, {SWITCH_DPS: True}
-        ):
-            await self.switch.async_toggle()
-
-    async def test_toggle_turns_the_switch_off_when_it_was_on(self):
-        self.dps[SWITCH_DPS] = True
-
-        async with assert_device_properties_set(
-            self.switch._device, {SWITCH_DPS: False}
-        ):
-            await self.switch.async_toggle()
+        self.assertEqual(self.basicLight.icon, "mdi:solar-power")
 
     def test_switch_icon(self):
-        self.assertEqual(self.switch.icon, "mdi:atom-variant")
+        self.assertEqual(self.basicSwitch.icon, "mdi:creation")

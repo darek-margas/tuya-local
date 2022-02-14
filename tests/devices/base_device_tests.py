@@ -2,25 +2,39 @@ from unittest import IsolatedAsyncioTestCase
 from unittest.mock import AsyncMock, patch, PropertyMock
 from uuid import uuid4
 
+from custom_components.tuya_local.generic.binary_sensor import TuyaLocalBinarySensor
 from custom_components.tuya_local.generic.climate import TuyaLocalClimate
+from custom_components.tuya_local.generic.cover import TuyaLocalCover
 from custom_components.tuya_local.generic.fan import TuyaLocalFan
 from custom_components.tuya_local.generic.humidifier import TuyaLocalHumidifier
 from custom_components.tuya_local.generic.light import TuyaLocalLight
 from custom_components.tuya_local.generic.lock import TuyaLocalLock
+from custom_components.tuya_local.generic.number import TuyaLocalNumber
+from custom_components.tuya_local.generic.select import TuyaLocalSelect
+from custom_components.tuya_local.generic.sensor import TuyaLocalSensor
 from custom_components.tuya_local.generic.switch import TuyaLocalSwitch
+from custom_components.tuya_local.generic.vacuum import TuyaLocalVacuum
 
 from custom_components.tuya_local.helpers.device_config import (
     TuyaDeviceConfig,
     possible_matches,
 )
 
+from ..helpers import assert_device_properties_set
+
 DEVICE_TYPES = {
+    "binary_sensor": TuyaLocalBinarySensor,
     "climate": TuyaLocalClimate,
+    "cover": TuyaLocalCover,
     "fan": TuyaLocalFan,
     "humidifier": TuyaLocalHumidifier,
     "light": TuyaLocalLight,
     "lock": TuyaLocalLock,
+    "number": TuyaLocalNumber,
     "switch": TuyaLocalSwitch,
+    "select": TuyaLocalSelect,
+    "sensor": TuyaLocalSensor,
+    "vacuum": TuyaLocalVacuum,
 }
 
 
@@ -36,13 +50,14 @@ class TuyaDeviceTestCase(IsolatedAsyncioTestCase):
         self.mock_device.get_property.side_effect = lambda id: self.dps[id]
         cfg = TuyaDeviceConfig(config_file)
         self.conf_type = cfg.legacy_type
+        type(self.mock_device).has_returned_state = PropertyMock(return_value=True)
         type(self.mock_device).unique_id = PropertyMock(return_value=str(uuid4()))
         self.mock_device.name = cfg.name
 
         self.entities = {}
-        self.entities[cfg.primary_entity.config_id] = self.create_entity(
-            cfg.primary_entity
-        )
+        self.secondary_category = []
+        self.primary_entity = cfg.primary_entity.config_id
+        self.entities[self.primary_entity] = self.create_entity(cfg.primary_entity)
 
         self.names = {}
         self.names[cfg.primary_entity.config_id] = cfg.primary_entity.name(cfg.name)
@@ -56,16 +71,48 @@ class TuyaDeviceTestCase(IsolatedAsyncioTestCase):
         if dev_type:
             return dev_type(self.mock_device, config)
 
+    def mark_secondary(self, entities):
+        self.secondary_category = self.secondary_category + entities
+
     def test_config_matched(self):
         for cfg in possible_matches(self.dps):
             if cfg.legacy_type == self.conf_type:
-                self.assertEqual(cfg.match_quality(self.dps), 100.0)
+                self.assertEqual(
+                    cfg.match_quality(self.dps),
+                    100.0,
+                    msg=f"{self.conf_type} is an imperfect match",
+                )
                 return
         self.fail()
 
     def test_should_poll(self):
         for e in self.entities.values():
             self.assertTrue(e.should_poll)
+
+    def test_available(self):
+        for e in self.entities.values():
+            self.assertTrue(e.available)
+
+    def test_entity_category(self):
+        for k, e in self.entities.items():
+            if k in self.secondary_category:
+                if type(e) in [TuyaLocalBinarySensor, TuyaLocalSensor]:
+                    self.assertEqual(
+                        e.entity_category,
+                        "diagnostic",
+                        msg=f"{k} is {e.entity_category}, expected diagnostic",
+                    )
+                else:
+                    self.assertEqual(
+                        e.entity_category,
+                        "config",
+                        msg=f"{k} is {e.entity_category}, expected config",
+                    )
+            else:
+                self.assertIsNone(
+                    e.entity_category,
+                    msg=f"{k} is {e.entity_category}, expected None",
+                )
 
     def test_name_returns_device_name(self):
         for e in self.entities:

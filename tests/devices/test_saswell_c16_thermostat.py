@@ -9,11 +9,16 @@ from homeassistant.components.climate.const import (
     SUPPORT_PRESET_MODE,
     SUPPORT_TARGET_TEMPERATURE,
 )
-from homeassistant.components.lock import STATE_LOCKED, STATE_UNLOCKED
-from homeassistant.const import STATE_UNAVAILABLE
+from homeassistant.const import DEVICE_CLASS_TEMPERATURE, POWER_WATT, TEMP_CELSIUS
 
 from ..const import SASWELL_C16_THERMOSTAT_PAYLOAD
 from ..helpers import assert_device_properties_set
+from ..mixins.climate import TargetTemperatureTests
+from ..mixins.lock import BasicLockTests
+from ..mixins.number import MultiNumberTests
+from ..mixins.select import MultiSelectTests
+from ..mixins.sensor import BasicSensorTests
+from ..mixins.switch import BasicSwitchTests
 from .base_device_tests import TuyaDeviceTestCase
 
 TEMPERATURE_DPS = "2"
@@ -37,7 +42,15 @@ HVACACTION_DPS = "24"
 UNKNOWN26_DPS = "26"
 
 
-class TestSaswellC16Thermostat(TuyaDeviceTestCase):
+class TestSaswellC16Thermostat(
+    BasicLockTests,
+    BasicSensorTests,
+    BasicSwitchTests,
+    MultiNumberTests,
+    MultiSelectTests,
+    TargetTemperatureTests,
+    TuyaDeviceTestCase,
+):
     __test__ = True
 
     def setUp(self):
@@ -45,7 +58,74 @@ class TestSaswellC16Thermostat(TuyaDeviceTestCase):
             "saswell_c16_thermostat.yaml", SASWELL_C16_THERMOSTAT_PAYLOAD
         )
         self.subject = self.entities.get("climate")
-        self.lock = self.entities.get("lock_child_lock")
+        self.setUpTargetTemperature(
+            TEMPERATURE_DPS,
+            self.subject,
+            min=5.0,
+            max=40.0,
+            scale=10,
+            step=5,
+        )
+        self.setUpBasicLock(LOCK_DPS, self.entities.get("lock_child_lock"))
+        self.setUpBasicSensor(
+            FLOORTEMP_DPS,
+            self.entities.get("sensor_floor_temperature"),
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class="measurement",
+            unit=TEMP_CELSIUS,
+            testdata=(218, 21.8),
+        )
+        self.setUpBasicSwitch(ADAPTIVE_DPS, self.entities.get("switch_adaptive"))
+        self.setUpMultiNumber(
+            [
+                {
+                    "name": "number_floor_temperature_limit",
+                    "dps": FLOORTEMPLIMIT_DPS,
+                    "min": 20.0,
+                    "max": 50.0,
+                    "scale": 10,
+                    "step": 0.5,
+                    "unit": TEMP_CELSIUS,
+                },
+                {
+                    "name": "number_power_rating",
+                    "dps": POWERRATING_DPS,
+                    "max": 3500,
+                    "unit": POWER_WATT,
+                },
+            ]
+        )
+        self.setUpMultiSelect(
+            [
+                {
+                    "name": "select_installation",
+                    "dps": INSTALL_DPS,
+                    "options": {
+                        True: "Office",
+                        False: "Home",
+                    },
+                },
+                {
+                    "name": "select_schedule",
+                    "dps": SCHED_DPS,
+                    "options": {
+                        "5_1_1": "Weekdays+Sat+Sun",
+                        "7": "Daily",
+                    },
+                },
+            ]
+        )
+        self.mark_secondary(
+            [
+                "lock_child_lock",
+                "sensor_floor_temperature",
+                "switch_adaptive",
+                "number_floor_temperature_limit",
+                "number_power_rating",
+                "select_installation",
+                "select_schedule",
+            ]
+        )
 
     def test_supported_features(self):
         self.assertEqual(
@@ -59,43 +139,17 @@ class TestSaswellC16Thermostat(TuyaDeviceTestCase):
         self.dps[PRESET_DPS] = "Manual"
         self.assertEqual(self.subject.icon, "mdi:cursor-pointer")
         self.dps[PRESET_DPS] = "Anti_frozen"
-        self.assertEqual(self.subject.icon, "mdi:snowflake")
+        self.assertEqual(self.subject.icon, "mdi:snowflake-melt")
         self.dps[LOCK_DPS] = True
-        self.assertEqual(self.lock.icon, "mdi:hand-back-right-off")
+        self.assertEqual(self.basicLock.icon, "mdi:hand-back-right-off")
         self.dps[LOCK_DPS] = False
-        self.assertEqual(self.lock.icon, "mdi:hand-back-right")
+        self.assertEqual(self.basicLock.icon, "mdi:hand-back-right")
 
     def test_temperature_unit(self):
         self.assertEqual(
             self.subject.temperature_unit,
             self.subject._device.temperature_unit,
         )
-
-    def test_target_temperature(self):
-        self.dps[TEMPERATURE_DPS] = 250
-        self.assertEqual(self.subject.target_temperature, 25.0)
-
-    def test_target_temperature_step(self):
-        self.assertEqual(self.subject.target_temperature_step, 0.5)
-
-    def test_minimum_target_temperature(self):
-        self.assertEqual(self.subject.min_temp, 5.0)
-
-    def test_maximum_target_temperature(self):
-        self.assertEqual(self.subject.max_temp, 40.0)
-
-    async def test_set_target_temperature(self):
-        async with assert_device_properties_set(
-            self.subject._device,
-            {TEMPERATURE_DPS: 240},
-        ):
-            await self.subject.async_set_target_temperature(24)
-
-    async def test_set_target_temperature_fails_outside_valid_range(self):
-        with self.assertRaisesRegex(
-            ValueError, "temperature \\(4.5\\) must be between 5.0 and 40.0"
-        ):
-            await self.subject.async_set_target_temperature(4.5)
 
     def test_current_temperature(self):
         self.dps[CURRENTTEMP_DPS] = 250
@@ -167,7 +221,7 @@ class TestSaswellC16Thermostat(TuyaDeviceTestCase):
         ):
             await self.subject.async_set_preset_mode("manual")
 
-    def test_device_state_attributes(self):
+    def test_extra_state_attributes(self):
         self.dps[UNKNOWN4_DPS] = 4
         self.dps[FLOORTEMPLIMIT_DPS] = 355
         self.dps[INSTALL_DPS] = True
@@ -183,7 +237,7 @@ class TestSaswellC16Thermostat(TuyaDeviceTestCase):
         self.dps[UNKNOWN26_DPS] = 26
 
         self.assertDictEqual(
-            self.subject.device_state_attributes,
+            self.subject.extra_state_attributes,
             {
                 "unknown_4": 4,
                 "floor_temp_limit": 35.5,
@@ -200,31 +254,3 @@ class TestSaswellC16Thermostat(TuyaDeviceTestCase):
                 "unknown_26": 26,
             },
         )
-
-    def test_lock_state(self):
-        self.dps[LOCK_DPS] = True
-        self.assertEqual(self.lock.state, STATE_LOCKED)
-
-        self.dps[LOCK_DPS] = False
-        self.assertEqual(self.lock.state, STATE_UNLOCKED)
-
-        self.dps[LOCK_DPS] = None
-        self.assertEqual(self.lock.state, STATE_UNAVAILABLE)
-
-    def test_lock_is_locked(self):
-        self.dps[LOCK_DPS] = True
-        self.assertTrue(self.lock.is_locked)
-
-        self.dps[LOCK_DPS] = False
-        self.assertFalse(self.lock.is_locked)
-
-        self.dps[LOCK_DPS] = None
-        self.assertFalse(self.lock.is_locked)
-
-    async def test_lock_locks(self):
-        async with assert_device_properties_set(self.lock._device, {LOCK_DPS: True}):
-            await self.lock.async_lock()
-
-    async def test_lock_unlocks(self):
-        async with assert_device_properties_set(self.lock._device, {LOCK_DPS: False}):
-            await self.lock.async_unlock()

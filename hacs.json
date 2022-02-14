@@ -1,7 +1,20 @@
 {
   "name": "Tuya Local",
   "render_readme": true,
-  "domains": ["climate", "fan", "humidifier", "light", "lock", "switch"],
+    "domains": [
+	"binary_sensor",
+	"climate",
+	"cover",
+	"fan",
+	"humidifier",
+	"light",
+	"lock",
+	"number",
+	"select",
+	"sensor",
+	"switch",
+	"vacuum"
+    ],
   "homeassistant": "2021.10.0",
   "iot_class": "Local Polling"
 }

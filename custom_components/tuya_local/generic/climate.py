@@ -21,7 +21,6 @@ from homeassistant.components.climate.const import (
     DEFAULT_MIN_HUMIDITY,
     DEFAULT_MIN_TEMP,
     HVAC_MODE_AUTO,
-    HVAC_MODE_OFF,
     SUPPORT_AUX_HEAT,
     SUPPORT_FAN_MODE,
     SUPPORT_PRESET_MODE,
@@ -40,11 +39,19 @@ from homeassistant.const import (
 
 from ..device import TuyaLocalDevice
 from ..helpers.device_config import TuyaEntityConfig
+from ..helpers.mixin import TuyaLocalEntity, unit_from_ascii
 
 _LOGGER = logging.getLogger(__name__)
 
+VALID_TEMP_UNIT = [TEMP_CELSIUS, TEMP_FAHRENHEIT, TEMP_KELVIN]
 
-class TuyaLocalClimate(ClimateEntity):
+
+def validate_temp_unit(unit):
+    unit = unit_from_ascii(unit)
+    return unit if unit in VALID_TEMP_UNIT else None
+
+
+class TuyaLocalClimate(TuyaLocalEntity, ClimateEntity):
     """Representation of a Tuya Climate entity."""
 
     def __init__(self, device: TuyaLocalDevice, config: TuyaEntityConfig):
@@ -54,11 +61,7 @@ class TuyaLocalClimate(ClimateEntity):
            device (TuyaLocalDevice): The device API instance.
            config (TuyaEntityConfig): The entity config.
         """
-        self._device = device
-        self._config = config
-        self._support_flags = 0
-        self._attr_dps = []
-        dps_map = {c.name: c for c in config.dps()}
+        dps_map = self._init_begin(device, config)
 
         self._aux_heat_dps = dps_map.pop(ATTR_AUX_HEAT, None)
         self._current_temperature_dps = dps_map.pop(ATTR_CURRENT_TEMPERATURE, None)
@@ -73,10 +76,11 @@ class TuyaLocalClimate(ClimateEntity):
         self._temp_high_dps = dps_map.pop(ATTR_TARGET_TEMP_HIGH, None)
         self._temp_low_dps = dps_map.pop(ATTR_TARGET_TEMP_LOW, None)
         self._unit_dps = dps_map.pop("temperature_unit", None)
+        self._mintemp_dps = dps_map.pop("min_temperature", None)
+        self._maxtemp_dps = dps_map.pop("max_temperature", None)
 
-        for d in dps_map.values():
-            if not d.hidden:
-                self._attr_dps.append(d)
+        self._init_end(dps_map)
+        self._support_flags = 0
 
         if self._aux_heat_dps:
             self._support_flags |= SUPPORT_AUX_HEAT
@@ -100,57 +104,19 @@ class TuyaLocalClimate(ClimateEntity):
         return self._support_flags
 
     @property
-    def should_poll(self):
-        """Return the polling state."""
-        return True
-
-    @property
-    def name(self):
-        """Return the name of the climate entity for the UI."""
-        return self._config.name(self._device.name)
-
-    @property
-    def unique_id(self):
-        """Return the unique id for this climate device."""
-        return self._config.unique_id(self._device.unique_id)
-
-    @property
-    def device_info(self):
-        """Return device information about this heater."""
-        return self._device.device_info
-
-    @property
-    def icon(self):
-        """Return the icon to use in the frontend for this device."""
-        icon = self._config.icon(self._device)
-        if icon:
-            return icon
-        else:
-            return super().icon
-
-    @property
     def temperature_unit(self):
         """Return the unit of measurement."""
         # If there is a separate DPS that returns the units, use that
         if self._unit_dps is not None:
-            unit = self._unit_dps.get_value(self._device)
+            unit = validate_temp_unit(self._unit_dps.get_value(self._device))
             # Only return valid units
-            if unit == "C":
-                return TEMP_CELSIUS
-            elif unit == "F":
-                return TEMP_FAHRENHEIT
-            elif unit == "K":
-                return TEMP_KELVIN
+            if unit is not None:
+                return unit
         # If there unit attribute configured in the temperature dps, use that
         if self._temperature_dps:
-            unit = self._temperature_dps.unit
-            # Only return valid units
-            if unit == "C":
-                return TEMP_CELSIUS
-            elif unit == "F":
-                return TEMP_FAHRENHEIT
-            elif unit == "K":
-                return TEMP_KELVIN
+            unit = validate_temp_unit(self._temperature_dps.unit)
+            if unit is not None:
+                return unit
         # Return the default unit from the device
         return self._device.temperature_unit
 
@@ -190,6 +156,10 @@ class TuyaLocalClimate(ClimateEntity):
     @property
     def min_temp(self):
         """Return the minimum supported target temperature."""
+        # if a separate min_temperature dps is specified, the device tells us.
+        if self._mintemp_dps is not None:
+            return self._mintemp_dps.get_value(self._device)
+
         if self._temperature_dps is None:
             if self._temp_low_dps is None:
                 return None
@@ -201,6 +171,10 @@ class TuyaLocalClimate(ClimateEntity):
     @property
     def max_temp(self):
         """Return the maximum supported target temperature."""
+        # if a separate max_temperature dps is specified, the device tells us.
+        if self._maxtemp_dps is not None:
+            return self._maxtemp_dps.get_value(self._device)
+
         if self._temperature_dps is None:
             if self._temp_high_dps is None:
                 return None
@@ -387,14 +361,3 @@ class TuyaLocalClimate(ClimateEntity):
         if self._fan_mode_dps is None:
             raise NotImplementedError()
         await self._fan_mode_dps.async_set_value(self._device, fan_mode)
-
-    @property
-    def device_state_attributes(self):
-        """Get additional attributes that the integration itself does not support."""
-        attr = {}
-        for a in self._attr_dps:
-            attr[a.name] = a.get_value(self._device)
-        return attr
-
-    async def async_update(self):
-        await self._device.async_refresh()
