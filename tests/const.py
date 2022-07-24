@@ -153,7 +153,7 @@ GARDENPAC_HEATPUMP_PAYLOAD = {
     "105": "warm",
     "106": 30,
     "107": 18,
-    "108": 40,
+    "108": 45,
     "115": 0,
     "116": 0,
     "117": True,
@@ -181,7 +181,7 @@ MADIMACK_HEATPUMP_PAYLOAD = {
     "105": "warm",
     "106": 30,
     "107": 18,
-    "108": 40,
+    "108": 45,
     "115": 4,
     "116": 0,
     "117": True,
@@ -367,6 +367,7 @@ ELECTRIQ_DESD9LW_DEHUMIDIFIER_PAYLOAD = {
 
 POOLEX_SILVERLINE_HEATPUMP_PAYLOAD = {"1": True, "2": 30, "3": 28, "4": "Heat", "13": 0}
 POOLEX_VERTIGO_HEATPUMP_PAYLOAD = {"1": True, "2": 30, "3": 28, "4": "heat", "9": 0}
+POOLEX_QLINE_HEATPUMP_PAYLOAD = {"1": True, "2": "heating", "4": 30, "15": 0, "16": 28}
 
 ELECTRIQ_12WMINV_HEATPUMP_PAYLOAD = {
     "1": True,
@@ -638,7 +639,7 @@ FERSK_VIND2_PAYLOAD = {
 KOGAN_GLASS_1_7L_KETTLE_PAYLOAD = {
     "1": False,
     "5": 99,
-    "102": "90",
+    #    "102": "90",
 }
 
 RENPHO_PURIFIER_PAYLOAD = {
@@ -830,6 +831,11 @@ TIMED_SOCKET_PAYLOAD = {
     "11": 0,
 }
 
+TIMED_SOCKETV2_PAYLOAD = {
+    "1": True,
+    "9": 0,
+}
+
 DIGOO_DGSP202_SOCKET_PAYLOAD = {
     "1": True,
     "2": True,
@@ -862,6 +868,17 @@ WOOX_R4028_SOCKET_PAYLOAD = {
     "102": 0,
     "103": 0,
     "105": 0,
+}
+
+ES01_POWERSTRIP_PAYLOAD = {
+    "1": True,
+    "2": True,
+    "3": True,
+    "4": True,
+    "5": 0,
+    "6": 0,
+    "7": 0,
+    "8": 0,
 }
 
 OWON_PCT513_THERMOSTAT_PAYLOAD = {
@@ -995,8 +1012,8 @@ LEFANT_M213_VACUUM_PAYLOAD = {
     "102": -23,
     "103": 27,
     "104": 0,
-    "106": "ChargeStage:DETSWITCGH",
-    "108": "BatVol:13159",
+    #   "106": "ChargeStage:DETSWITCGH",
+    #    "108": "BatVol:13159",
 }
 
 KYVOL_E30_VACUUM_PAYLOAD = {
@@ -1162,4 +1179,273 @@ STARLIGHT_HEATPUMP_PAYLOAD = {
     "132": False,
     "133": "0",
     "134": '{"t":8601,"s":false,"clr":true}',
+}
+
+WILFA_HAZE_HUMIDIFIER_PAYLOAD = {
+    "1": True,
+    "5": False,
+    "8": False,
+    "10": 20,
+    "13": 70,
+    "14": 55,
+    "16": False,
+    "18": "c",
+    "19": "cancel",
+    "20": 0,
+    "22": 0,
+    "23": "level_3",
+    "24": "humidity",
+    "26": False,
+    "35": False,
+}
+
+WEAU_POOL_HEATPUMP_PAYLOAD = {
+    "1": True,
+    "2": 33,
+    "3": 195,
+    "4": "auto",
+    "6": 0,
+}
+
+WEAU_POOL_HEATPUMPV2_PAYLOAD = {
+    "1": True,
+    "2": "eheat",
+    "9": 15,
+    "10": 260,
+    "20": 0,
+    "101": 0,
+    "102": 40,
+    "103": 15,
+    "104": True,
+}
+
+SMARTPLUG_ENCODED_PAYLOAD = {
+    "1": True,
+    "11": 0,
+    "101": "QVA=",
+    "102": "QVA=",
+    "103": "QVA=",
+}
+
+DEVOLA_PATIO_HEATER_PAYLOAD = {
+    "1": True,
+    "2": 20,
+    "3": 15,
+    "4": "smart",
+    "5": "4",
+    "6": False,
+    "7": False,
+    "12": 0,
+    "14": "heating",
+    "19": "c",
+    "20": 68,
+    "21": 59,
+}
+
+QS_C01_CURTAIN_PAYLOAD = {
+    "1": "stop",
+    "2": 0,
+    "8": "forward",
+    "10": 20,
+}
+
+M027_CURTAIN_PAYLOAD = {
+    "1": "close",
+    "2": 0,
+    "4": "morning",
+    "7": "closing",
+    "10": 0,
+    "12": 0,
+    "101": False,
+}
+
+JIAHONG_ET72W_PAYLOAD = {
+    "101": True,
+    "102": 220,
+    "103": "Manual",
+    "104": 0,
+    "105": 205,
+    "106": 240,
+    "107": False,
+    "108": False,
+    "109": False,
+    "110": 2,
+    "111": "0",
+    "112": 0,
+    "113": 0,
+    "116": 500,
+    "117": 1234,
+    "118": True,
+    "121": 300,
+}
+
+BETTERLIFE_BL1500_PAYLOAD = {
+    "1": True,
+    "2": 20,
+    "4": "0",
+    "7": False,
+    "11": "0",
+    "12": 0,
+}
+
+EESEE_ADAM_PAYLOAD = {
+    "1": True,
+    "2": 50,
+    "4": "manual",
+    "5": "low",
+    "14": False,
+    "16": 72,
+    "17": "cancel",
+    "19": 0,
+}
+
+ALECOAIR_D14_PAYLOAD = {
+    "1": True,
+    "2": 50,
+    "4": "manual",
+    "5": "low",
+    "10": False,
+    "14": False,
+    "16": 72,
+    "17": "cancel",
+    "19": 0,
+}
+
+HYUNDAI_SAHARA_PAYLOAD = {
+    "1": True,
+    "2": 50,
+    "4": "high",
+    "6": 73,
+    "7": 25,
+    "14": False,
+    "16": False,
+    "19": 0,
+}
+
+RGBCW_LIGHTBULB_PAYLOAD = {
+    "20": True,
+    "21": "white",
+    "22": 1000,
+    "23": 500,
+    "24": "0000000003e8",
+    "25": "000e0d0000000000000000c80000",
+    "26": 0,
+}
+
+MOES_TEMP_HUMID_PAYLOAD = {
+    "1": True,
+    "2": False,
+    "3": True,
+    "4": "manual",
+    "6": 374,
+    "8": False,
+    "9": 0,
+    "11": False,
+    "12": 0,
+    "18": 0,
+    "20": 0,
+    "21": 0,
+    "22": 0,
+    "24": "",
+    "101": "",
+    "102": "",
+    "103": 0,
+    "104": 0,
+    "105": "off",
+    "106": "mix",
+}
+
+ORION_SMARTLOCK_PAYLOAD = {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "8": 0,
+    "9": 0,
+    "10": False,
+    "12": 100,
+    "15": 0,
+    "16": False,
+}
+
+ELECTRIQ_AIRFLEX15W_PAYLOAD = {
+    "1": True,
+    "2": 16,
+    "3": 27,
+    "17": 90,
+    "20": 0,
+    "101": "1",
+    "103": False,
+    "104": "1",
+    "105": 0,
+    "106": False,
+    "109": False,
+    "112": 42,
+}
+
+PC321TY_POWERCLAMP_PAYLOAD = {
+    "101": 2284,
+    "102": 1073,
+    "103": 191,
+    "104": 78,
+    "106": 251,
+    "111": 2354,
+    "112": 748,
+    "113": 47,
+    "114": 100,
+    "116": 267,
+    "121": 2350,
+    "122": 753,
+    "123": 149,
+    "124": 84,
+    "126": 517,
+    "131": 1036,
+    "132": 2574,
+    "133": 188,
+    "135": 50,
+    "136": 390,
+}
+
+ENERGY_POWERSTRIP_PAYLOAD = {
+    "1": False,
+    "2": False,
+    "3": False,
+    "4": False,
+    "102": 0,
+    "103": 0,
+    "104": 2240,
+    "105": 1,
+    "106": 1709,
+    "107": 34620,
+    "108": 101000,
+    "109": 205,
+}
+
+COMPTEUR_SMARTMETER_PAYLOAD = {
+    "17": 12345,
+    "18": 2000,
+    "19": 4400,
+    "20": 2200,
+    "21": 0,
+    "22": 0,
+    "23": 0,
+    "24": 0,
+    "25": 0,
+    "26": 0,
+}
+
+BECOOL_HEATPUMP_PAYLOAD = {
+    "1": False,
+    "4": 0,
+    "5": "4",
+    "6": 24,
+    "8": "0",
+    "10": False,
+    "13": 0,
+    "14": 0,
+    "15": 0,
+    "16": True,
+    "17": False,
+    "19": False,
 }

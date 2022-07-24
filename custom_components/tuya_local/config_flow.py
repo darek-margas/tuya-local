@@ -14,7 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    VERSION = 7
+    VERSION = 9
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
     device = None
     data = {}
@@ -96,10 +96,6 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             )
         config = get_config(self.data[CONF_TYPE])
         schema = {vol.Required(CONF_NAME, default=config.name): str}
-        e = config.primary_entity
-        schema[vol.Optional(e.config_id, default=True)] = bool
-        for e in config.secondary_entities():
-            schema[vol.Optional(e.config_id, default=not e.deprecated)] = bool
 
         return self.async_show_form(
             step_id="choose_entities",
@@ -140,12 +136,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         cfg = get_config(config[CONF_TYPE])
         if cfg is None:
             return self.async_abort(reason="not_supported")
-        e = cfg.primary_entity
-        schema[vol.Optional(e.config_id, default=config.get(e.config_id, True))] = bool
-        for e in cfg.secondary_entities():
-            schema[
-                vol.Optional(e.config_id, default=config.get(e.config_id, False))
-            ] = bool
+
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(schema),

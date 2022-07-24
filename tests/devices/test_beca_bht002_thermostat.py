@@ -1,22 +1,15 @@
 from homeassistant.components.climate.const import (
-    HVAC_MODE_AUTO,
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
+    ClimateEntityFeature,
+    HVACMode,
     PRESET_ECO,
     PRESET_COMFORT,
-    SUPPORT_PRESET_MODE,
-    SUPPORT_TARGET_TEMPERATURE,
 )
 from homeassistant.components.sensor import SensorDeviceClass
-from homeassistant.const import (
-    STATE_UNAVAILABLE,
-    TEMP_CELSIUS,
-)
+from homeassistant.const import TEMP_CELSIUS
 
 from ..const import BECA_BHT002_PAYLOAD
 from ..helpers import assert_device_properties_set
 from ..mixins.climate import TargetTemperatureTests
-from ..mixins.light import BasicLightTests
 from ..mixins.lock import BasicLockTests
 from ..mixins.sensor import BasicSensorTests
 from .base_device_tests import TuyaDeviceTestCase
@@ -32,7 +25,6 @@ UNKNOWN104_DPS = "104"
 
 
 class TestBecaBHT002Thermostat(
-    BasicLightTests,
     BasicLockTests,
     BasicSensorTests,
     TargetTemperatureTests,
@@ -53,7 +45,6 @@ class TestBecaBHT002Thermostat(
             max=35.0,
             scale=2,
         )
-        self.setUpBasicLight(POWER_DPS, self.entities.get("light_display"))
         self.setUpBasicLock(LOCK_DPS, self.entities.get("lock_child_lock"))
         self.setUpBasicSensor(
             FLOOR_DPS,
@@ -63,12 +54,15 @@ class TestBecaBHT002Thermostat(
             state_class="measurement",
             testdata=(30, 15),
         )
-        self.mark_secondary(["light_display", "lock_child_lock"])
+        self.mark_secondary(["lock_child_lock"])
 
     def test_supported_features(self):
         self.assertEqual(
             self.subject.supported_features,
-            SUPPORT_PRESET_MODE | SUPPORT_TARGET_TEMPERATURE,
+            (
+                ClimateEntityFeature.PRESET_MODE
+                | ClimateEntityFeature.TARGET_TEMPERATURE
+            ),
         )
 
     def test_temperature_unit(self):
@@ -102,24 +96,21 @@ class TestBecaBHT002Thermostat(
     def test_hvac_mode(self):
         self.dps[POWER_DPS] = False
         self.dps[HVACMODE_DPS] = "0"
-        self.assertEqual(self.subject.hvac_mode, HVAC_MODE_OFF)
+        self.assertEqual(self.subject.hvac_mode, HVACMode.OFF)
 
         self.dps[POWER_DPS] = True
-        self.assertEqual(self.subject.hvac_mode, HVAC_MODE_AUTO)
+        self.assertEqual(self.subject.hvac_mode, HVACMode.AUTO)
 
         self.dps[HVACMODE_DPS] = "1"
-        self.assertEqual(self.subject.hvac_mode, HVAC_MODE_HEAT)
-
-        self.dps[HVACMODE_DPS] = None
-        self.assertEqual(self.subject.hvac_mode, STATE_UNAVAILABLE)
+        self.assertEqual(self.subject.hvac_mode, HVACMode.HEAT)
 
     def test_hvac_modes(self):
         self.assertCountEqual(
             self.subject.hvac_modes,
             [
-                HVAC_MODE_HEAT,
-                HVAC_MODE_AUTO,
-                HVAC_MODE_OFF,
+                HVACMode.HEAT,
+                HVACMode.AUTO,
+                HVACMode.OFF,
             ],
         )
 
@@ -133,11 +124,6 @@ class TestBecaBHT002Thermostat(
         )
 
     def test_icons(self):
-        self.dps[POWER_DPS] = True
-        self.assertEqual(self.basicLight.icon, "mdi:led-on")
-        self.dps[POWER_DPS] = False
-        self.assertEqual(self.basicLight.icon, "mdi:led-off")
-
         self.dps[LOCK_DPS] = True
         self.assertEqual(self.basicLock.icon, "mdi:hand-back-right-off")
         self.dps[LOCK_DPS] = False

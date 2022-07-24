@@ -42,13 +42,17 @@ the device will not work despite being listed below.
 - Purline Hoti M100 heater
 - Wetair WCH-750 heater
 - Kogan Flame effect heater - KAWHMFP20BA model
-- Nedis convection heater - WIFIHTPL20F models
+- Nedis convection heater - WIFIHTPL20F model
 - Ecostrad Accent iQ heating panels
 - Ecostrad iQ Ceramic radiators
+- Devola Patio heater
+- Betterlife BT1500 IR heater
+- Kogan Tower Heater - KASTHFP2KWA model
 
 ### Air Conditioners / Heatpumps
 
 - ElectriQ 12WMINV
+- ElectriQ Airflex 15W
 - Tadiran Wind 65/3P
 - Fersk Vind 2
 - Carson CB PA280
@@ -57,16 +61,19 @@ the device will not work despite being listed below.
 - Eberg Cooly C35HD
 - Star-Light air conditioner
 - TroniTechnik Hellnar Klimagerät
+- Be Cool BC14KL2101F
 
 ### Pool heaters / heatpumps
 
 - Garden PAC pool heatpump (also works with Summerwave Si Series)
 - Madimack Elite V3 pool heatpump
-- Madimack(model unknown) pool heatpump
+- Madimack(model unknown) pool heatpump (seems to match Fairland IPH45 as well)
 - Remora pool heatpump
 - BWT FI 45 heatpump
-- Poolex Silverline and Vertigo heatpump
+- Poolex Silverline, Q-line and Vertigo heatpumps
 - IPS Pro Pool-Systems Heatpump (seems to match Fairland Inver-X as well)
+- W'eau Pool Heatpump
+
 - these seem to use a small number of common controllers with minor variations, and many other Pool heatpumps will work using the above configurations.
   Report issues if there are any differences in presets or other features,
   or if any of the "unknown" values that are returned as attributes can
@@ -88,6 +95,8 @@ the device will not work despite being listed below.
 - Beok TR9B thermostat _(rebadged as Vancoo and perhaps others)_
 - Hysen HY08WE-2 thermostat
 - Nashone MTS-700-WB thermostat smartplug
+- Jiahong ET-72W thermostat
+- Moes MS-103 Temperature and Humidity Switch (partial functions, temperature only)
 
 ### Fans
 - Goldair GCPF315 fan
@@ -116,16 +125,22 @@ the device will not work despite being listed below.
 - Kogan SmarterHome 7L Desiccant dehumidifier
 - JJPro JPD01 dehumidifer
 - JJPro JPD02 dehumidifier
+- Eesee Adam dehumidifier
+- Hyundai Sahara dehumidifier
+- AlecoAir D14 Purifying Dehumidifier
 
 ### Humidifiers
 - Eanons QT-JS2014 Purifying humidifier
 - Wetair WAW-H1210LW humidifier
+- Wilfa Haze HU400BC humidifier
 
 ### Kitchen Appliances
 - Kogan Glass 1.7L Smart Kettle (not reliably detected)
 
 ### Smart Meter/Circuit Breaker
 - SmartMCB SMT006 Energy Meter
+- PC321-TY 3 phase Power Clamp meter
+- Compteur Digital Electric (single phase)
 
 ### Battery Charger
 - Parkside PLGS 2012 A1 Smart Charger for powertools
@@ -137,27 +152,40 @@ the device will not work despite being listed below.
   _confirmed working with Kogan single smartplug with USB and Rillpac smartplugs_
 - Generic Smartplug with more advanced energy monitoring
   _confirmed working with CBE smartplugs_
+- Generic Smartplug with some additional encoded schedule info.
+  _confirmed working as a simple switch and timer with Kashimura KJ-173_
 - Mirabella Genio Smart plug with USB
 - Grid Connect double outlet with Energy Monitoring, Master and Individual switches and Child Lock.
 - DIGOO DG-SP202 dual smartplug with energy monitoring and timers.
 - DIGOO DG-SP01 USB smartplug with night light.
 - Grid Connect double outlet wall socket
 - Woox R4028/DIGOO DG-PS01 3 outlet + USB powerstrip with individual timers.
+- ES01 3 outlet + USB powerstrip with individual timers.
 Other brands may work with the above configurations
 - MoesHouse Smartplug with RGBW nightlight
 - Logicom Strippy 4 way power strip with USB
+- 4 way power monitoring strip
 
 - Simple Switch - a switch only, can be a fallback for many other unsupported devices, to allow just power to be switched on/off.
 - Simple Switch with Timer - a single switch and timer, will probably work for a lot of smart switches that are not covered by the more advanced configs above.
+- Simple Switch with Timer v2 - the above with timer moved from dp 11 to 9, confirmed with a Nexxt 220V smart switch. 
+
+### Lights
+- Generic RGBCW/RGBWW lightbulb (confirmed with Lijun branded bulb, expected to match others also)
 
 ### Covers
 - Simple Garage Door
 - Simple Blind Controller
 - Kogan Garage Door with tilt sensor
+- QS-WIFI-C01(BK) Curtain Module
+- M027 Curtain Module (sold under several brands, including zemismart, meterk and others)
 
 ### Vacuum Cleaners
-- Lefant M213 Vacuum Cleaner
+- Lefant M213 Vacuum Cleaner (also works for Lefant M213S and APOSEN A550)
 - Kyvol E30 Vacuum Cleaner
+
+### Locks
+- Orion Grid Connect Smart Lock
 
 ### Miscellaneous
 - Qoto 03 Smart Water Valve / Sprinkler Controller
@@ -167,7 +195,7 @@ Other brands may work with the above configurations
 
 ## Installation
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
 Installation is via the [Home Assistant Community Store
 (HACS)](https://hacs.xyz/), which is the best place to get third-party
@@ -232,17 +260,10 @@ it up again.
 
 ### Stage Three
 
-The final stage is to choose a name for the device in Home Assistant,
-and select which entities you want to enable.  The options availble
-will depend on the capabilities of the device you selected in the
-previous step.
+The final stage is to choose a name for the device in Home Assistant.
 
-Usually you will want to accept the defaults at this step.  Entities
-are selected by default, unless they are a deprecated alternative way
-of controlling the device (such as a climate entity for dehumidifiers
-as an alternative to humidifier and fan entities).  If you have
-multiple devices of the same type, you may want to change the name to
-make it easier to distinguish them.
+If you have multiple devices of the same type, you may want to change
+the name to make it easier to distinguish them.
 
 #### name
 
@@ -254,15 +275,26 @@ the entities.
 
 #### (entities)
 
-&nbsp;&nbsp;&nbsp;&nbsp;_(boolean) (Optional)_ A number of options
-will be available for each of the entities exposed by the device.
+&nbsp;&nbsp;&nbsp;&nbsp;_(boolean) (Optional)_ Additional options
+may be available for deprecated entities exposed by the device.
 They will be named for the platform type and an optional name for
 the entity as a suffix (eg `climate`, `humidifier`, `lock_child_lock`)
 Setting them to True will expose the entity in Home Assistant.
 
+It is strongly recommended that you do not enable deprecated entities when
+setting up a new device.  They are only retained for users who set up the
+device before support was added for the actual entity matching the device,
+or when a function was misunderstood, and will not be retained forever.
+
+As of 0.18.0, there are no longer any deprecated entities, but they
+may be reintroduced in future if better representations of existing
+devices emerge again.
+
 ## Offline operation gotchas
 
-Many Tuya devices will stop responding if unable to connect to the Tuya servers for an extended period.  Reportedly, some devices act better offline if DNS as well as TCP connections is blocked.
+Many Tuya devices will stop responding if unable to connect to the
+Tuya servers for an extended period.  Reportedly, some devices act
+better offline if DNS as well as TCP connections is blocked.
 
 
 ## Heater gotchas
@@ -309,13 +341,6 @@ anything.  If you can figure out how to make setting temperatures and
 presets work, please leave feedback in Issue #19.
 
 ## Fan gotchas
-
-Fans should be configured as `fan` entities, with any auxilary
-functions such as panel lighting control, child locks or additional
-switches configured as `light`, `lock` or `switch` entities.
-Configuration of Goldair fans as `climate` entities is supported for
-backward compatibility but is deprecated, and may be removed in
-future.
 
 Reportedly, Goldair fans can be a bit flaky. If they become
 unresponsive, give them about 60 seconds to wake up again.
@@ -367,19 +392,6 @@ These support configuration as either heating or cooling controllers, but
 only have one output.  The HVAC mode is provided as an indicator of which
 mode they are in, but are set to readonly so that you cannot accidentally
 switch the thermostat to the wrong mode from HA.
-
-## Humidifiers and dehumidifiers
-
-Humidifiers and Dehumidifiers should be configuured as `humidifier`
-entities, probably with `fan` entities as well if the fan speed can
-also be controlled, and any other auxilary features such as panel
-lighting, child locks or additional switches configured as `light`,
-`lock` or `switch` entities.  Configration of Goldair Dehumidifiers
-and Eanons Humidifiers as `climate` entities is also supported for
-backwards compatibility, but is deprecated and may be removed in
-future.  In particular, when humidifiers are represented as `climate`
-entities, the running mode will show as `Dry`, as the climate entity
-only supports functions commonly found on air conditioners/heatpumps.
 
 
 ## Finding your device ID and local key
