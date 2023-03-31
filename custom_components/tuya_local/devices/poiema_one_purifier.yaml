@@ -1,4 +1,4 @@
-name: Poiema One Air Purifier
+name: Poiema One air purifier
 products:
   - id: 2q2jgeegaziyugdg
 primary_entity:
@@ -41,7 +41,7 @@ secondary_entities:
         class: measurement
         unit: ugm3
   - entity: lock
-    name: Child Lock
+    name: Child lock
     category: config
     dps:
       - id: 7
@@ -52,8 +52,17 @@ secondary_entities:
             icon: "mdi:hand-back-right-off"
           - dps_val: false
             icon: "mdi:hand-back-right"
+  - entity: button
+    name: Filter reset
+    category: config
+    class: restart
+    dps:
+      - id: 11
+        type: boolean
+        name: button
   - entity: switch
-    name: Filter Reset
+    deprecated: button
+    name: Filter reset
     category: config
     icon: "mdi:refresh"
     dps:
@@ -84,6 +93,7 @@ secondary_entities:
   - entity: sensor
     name: Timer
     category: diagnostic
+    class: duration
     icon: "mdi:timer"
     dps:
       - id: 19

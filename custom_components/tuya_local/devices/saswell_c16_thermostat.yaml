@@ -1,4 +1,4 @@
-name: C16 WiFi Thermostat
+name: C16 WiFi thermostat
 products:
   - id: jIRwsT5yLPJO41Po
 primary_entity:
@@ -67,15 +67,6 @@ primary_entity:
     - id: 12
       name: schedule
       type: string
-    - id: 14
-      name: unknown_14
-      type: integer
-    - id: 15
-      name: unknown_15
-      type: integer
-    - id: 17
-      name: unknown_17
-      type: integer
     - id: 21
       name: unknown_21
       type: boolean
@@ -97,10 +88,11 @@ primary_entity:
           value: cooling
     - id: 26
       name: unknown_26
+      optional: true
       type: integer
 secondary_entities:
   - entity: lock
-    name: Child Lock
+    name: Child lock
     category: config
     dps:
       - id: 11
@@ -112,8 +104,9 @@ secondary_entities:
           - dps_val: false
             icon: "mdi:hand-back-right"
   - entity: number
-    name: Floor Temperature Limit
+    name: Floor temperature limit
     category: config
+    class: temperature
     icon: "mdi:thermometer-alert"
     dps:
       - id: 6
@@ -141,7 +134,7 @@ secondary_entities:
             value: Home
             icon: "mdi:home-map-marker"
   - entity: sensor
-    name: Floor Temperature
+    name: Floor temperature
     class: temperature
     category: diagnostic
     dps:
@@ -173,9 +166,59 @@ secondary_entities:
             value: "Weekdays+Sat+Sun"
           - dps_val: "7"
             value: "Daily"
-  - entity: number
-    name: Power Rating
+  - entity: select
+    name: Sensor select
+    icon: "mdi:home-thermometer"
     category: config
+    dps:
+      - id: 14
+        name: option
+        type: string
+        mapping:
+          - dps_val: "0"
+            value: "Floor sensor"
+          - dps_val: "1"
+            value: "Room sensor"
+          - dps_val: "2"
+            value: "Room sensor with floor sensor limit"
+          - dps_val: "3"
+            value: "External room sensor"
+          - dps_val: "4"
+            value: "External room sensor with floor sensor limit"
+  - entity: number
+    name: Room temperature calibration
+    icon: "mdi:thermometer-check"
+    category: config
+    dps:
+      - id: 15
+        name: value
+        type: integer
+        unit: C
+        range:
+          min: -50
+          max: 50
+        mapping:
+          - scale: 10
+            step: 5
+  - entity: number
+    name: Floor temperature calibration
+    icon: "mdi:thermometer-check"
+    category: config
+    dps:
+      - id: 17
+        name: value
+        type: integer
+        unit: C
+        range:
+          min: -50
+          max: 50
+        mapping:
+          - scale: 10
+            step: 5
+  - entity: number
+    name: Power rating
+    category: config
+    class: power
     icon: "mdi:signal"
     dps:
       - id: 22

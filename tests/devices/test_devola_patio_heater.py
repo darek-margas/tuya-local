@@ -5,9 +5,8 @@ from homeassistant.components.climate.const import (
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import (
     PERCENTAGE,
-    TIME_MINUTES,
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
+    UnitOfTime,
+    UnitOfTemperature,
 )
 
 from ..const import DEVOLA_PATIO_HEATER_PAYLOAD
@@ -56,7 +55,7 @@ class TestDevolaPatioHeater(
             self.entities.get("number_timer"),
             max=1440,
             step=1.0,
-            unit=TIME_MINUTES,
+            unit=UnitOfTime.MINUTES,
         )
         self.setUpMultiSensors(
             [
@@ -103,12 +102,12 @@ class TestDevolaPatioHeater(
         self.dps[UNIT_DPS] = "c"
         self.assertEqual(
             self.subject.temperature_unit,
-            TEMP_CELSIUS,
+            UnitOfTemperature.CELSIUS,
         )
         self.dps[UNIT_DPS] = "f"
         self.assertEqual(
             self.subject.temperature_unit,
-            TEMP_FAHRENHEIT,
+            UnitOfTemperature.FAHRENHEIT,
         )
 
     async def test_legacy_set_temperature_with_preset_mode(self):

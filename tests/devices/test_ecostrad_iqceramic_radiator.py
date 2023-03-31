@@ -2,7 +2,7 @@ from homeassistant.components.climate.const import (
     ClimateEntityFeature,
     HVACMode,
 )
-from homeassistant.const import TEMP_CELSIUS
+from homeassistant.const import UnitOfTemperature
 
 from ..const import ECOSTRAD_IQCERAMIC_RADIATOR_PAYLOAD
 from ..helpers import assert_device_properties_set
@@ -53,7 +53,7 @@ class TestEcostradAccentIqHeater(
             self.entities.get("number_calibration_offset"),
             min=-5,
             max=5,
-            unit=TEMP_CELSIUS,
+            unit=UnitOfTemperature.CELSIUS,
         )
         self.setUpBasicSwitch(
             SYNC_DPS, self.entities.get("switch_time_sync"), testdata=("1", "0")
@@ -103,7 +103,7 @@ class TestEcostradAccentIqHeater(
     def test_temperature_unit(self):
         self.assertEqual(
             self.subject.temperature_unit,
-            self.subject._device.temperature_unit,
+            UnitOfTemperature.CELSIUS,
         )
 
     def test_current_temperature(self):

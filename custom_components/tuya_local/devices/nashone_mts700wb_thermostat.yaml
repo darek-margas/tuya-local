@@ -1,44 +1,27 @@
-name: Nashone MTS-700-WB Thermostat
+name: Nashone MTS-700-WB thermostat
 primary_entity:
   entity: climate
   dps:
     - id: 1
       type: boolean
-      name: power
-      hidden: true
+      name: hvac_mode
       mapping:
         - dps_val: False
           value: "off"
-    - id: 2
-      type: string
-      name: hvac_mode
-      mapping:
-        - dps_val: cold
-          constraint: power
-          conditions:
-            - dps_val: true
-              value: cool
-            - dps_val: false
-              value_redirect: power
-              value: "off"
-        - dps_val: hot
-          constraint: power
-          conditions:
-            - dps_val: true
-              value: heat
-            - dps_val: false
-              value_redirect: power
-    - id: 3
-      type: string
-      name: hvac_action
-      mapping:
-        - dps_val: manual
-          constraint: hvac_mode
+        - dps_val: true
+          constraint: mode
           conditions:
             - dps_val: cold
-              value: cooling
+              value: cool
             - dps_val: hot
-              value: heating
+              value: heat
+    - id: 2
+      type: string
+      name: mode
+      hidden: true
+    - id: 3
+      type: string
+      name: work_state
     - id: 16
       type: integer
       name: temperature
@@ -83,7 +66,7 @@ primary_entity:
 secondary_entities:
   - entity: number
     category: config
-    name: Calibration Offset
+    name: Calibration offset
     icon: "mdi:arrow-collapse-up"
     dps:
       - id: 27
@@ -92,9 +75,18 @@ secondary_entities:
         range:
           min: -5
           max: 5
-  - entity: switch
+  - entity: button
+    name: Factory reset
     category: config
-    name: Factory Reset
+    class: restart
+    dps:
+      - id: 39
+        type: boolean
+        name: button
+  - entity: switch
+    deprecated: button
+    category: config
+    name: Factory reset
     icon: "mdi:cog-refresh"
     dps:
       - id: 39
@@ -116,11 +108,10 @@ secondary_entities:
   - entity: sensor
     category: diagnostic
     name: Timer
+    class: duration
     icon: "mdi:timer"
     dps:
       - id: 42
         type: integer
-        unit: min
+        unit: s
         name: sensor
-        mapping:
-          - scale: 60

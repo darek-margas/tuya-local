@@ -2,9 +2,9 @@
 from homeassistant.components.sensor import SensorDeviceClass, STATE_CLASS_MEASUREMENT
 from homeassistant.components.switch import SwitchDeviceClass
 from homeassistant.const import (
-    ELECTRIC_CURRENT_MILLIAMPERE,
-    ELECTRIC_POTENTIAL_VOLT,
-    POWER_WATT,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
+    UnitOfPower,
 )
 
 from ..const import ENERGY_POWERSTRIP_PAYLOAD
@@ -67,14 +67,14 @@ class TestEnergyMonitoringPowerstrip(
                     "name": "sensor_current",
                     "dps": CURRENT_DP,
                     "device_class": SensorDeviceClass.CURRENT,
-                    "unit": ELECTRIC_CURRENT_MILLIAMPERE,
+                    "unit": UnitOfElectricCurrent.MILLIAMPERE,
                     "state_class": STATE_CLASS_MEASUREMENT,
                 },
                 {
                     "name": "sensor_power",
                     "dps": POWER_DP,
                     "device_class": SensorDeviceClass.POWER,
-                    "unit": POWER_WATT,
+                    "unit": UnitOfPower.WATT,
                     "state_class": STATE_CLASS_MEASUREMENT,
                     "testdata": (1234, 123.4),
                 },
@@ -82,7 +82,7 @@ class TestEnergyMonitoringPowerstrip(
                     "name": "sensor_voltage",
                     "dps": VOLTAGE_DP,
                     "device_class": SensorDeviceClass.VOLTAGE,
-                    "unit": ELECTRIC_POTENTIAL_VOLT,
+                    "unit": UnitOfElectricPotential.VOLT,
                     "state_class": STATE_CLASS_MEASUREMENT,
                     "testdata": (2345, 234.5),
                 },

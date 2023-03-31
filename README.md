@@ -1,195 +1,71 @@
 # Home Assistant Tuya Local component
 
-[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=make-all_tuya-local&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=make-all_tuya-local)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=make-all_tuya-local&metric=security_rating)](https://sonarcloud.io/dashboard?id=make-all_tuya-local)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=make-all_tuya-local&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=make-all_tuya-local)
-[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=make-all_tuya-local&metric=ncloc)](https://sonarcloud.io/dashboard?id=make-all_tuya-local)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=make-all_tuya-local&metric=coverage)](https://sonarcloud.io/dashboard?id=make-all_tuya-local)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=make-all_tuya-local&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=make-all_tuya-local) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=make-all_tuya-local&metric=security_rating)](https://sonarcloud.io/dashboard?id=make-all_tuya-local) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=make-all_tuya-local&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=make-all_tuya-local) [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=make-all_tuya-local&metric=ncloc)](https://sonarcloud.io/dashboard?id=make-all_tuya-local) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=make-all_tuya-local&metric=coverage)](https://sonarcloud.io/dashboard?id=make-all_tuya-local)
 
-This is a Home Assistant add-on to support Wi-fi devices running Tuya
-firmware without going via the Tuya cloud.  Using this integration
-does not stop your devices from sending status to the Tuya cloud, so
-this should not be seen as a security measure, rather it improves
-speed and reliability by using local connections, and may unlock some
-features of your device, or even unlock whole devices, that are not
-supported by the Tuya cloud API.  Currently the focus is mainly on
-more complex devices, which are not well supported by other similar
-integrations. Simpler devices like switches and lights can be covered
-by [rospogrigio/localtuya](https://github.com/rospogrigio/localtuya/),
-though some switches are now covered by this integration.
+Please report any [issues](https://github.com/make-all/tuya-local/issues) and feel free to raise [pull requests](https://github.com/make-all/tuya-local/pulls).
+[Many others](https://github.com/make-all/tuya-local/blob/main/ACKNOWLEDGEMENTS.md) have contributed their help already.
+
+[![BuyMeCoffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jasonrumney)
+
+This is a Home Assistant integration to support Wi-fi devices running Tuya
+firmware without going via the Tuya cloud.  Currently only WiFi
+devices are supported, Tuya also makes Zigbee, BLE and other devices
+that connect to WiFi using a gateway, such devices are not yet
+supported.
+
+Note that most Tuya devices seem to support only one local connection.
+If you have connection issues when using this integration, ensure that other
+integrations offering local Tuya connections are not configured to use the
+same device, mobile applications on devices on the local network are closed,
+and no other software is trying to connect locally to your Tuya devices.
+
+Using this integration does not stop your devices from sending status
+to the Tuya cloud, so this should not be seen as a security measure,
+rather it improves speed and reliability by using local connections,
+and may unlock some features of your device, or even unlock whole
+devices, that are not supported by the Tuya cloud API. 
+
+A similar but unrelated integration is
+[rospogrigio/localtuya](https://github.com/rospogrigio/localtuya/), if
+your device is not supported by this integration, you may find it
+easier to set up using that as an alternative.
+
 
 ---
 
 ## Device support
 
-Please note, this component is actively tested with the Goldair GPPH
-(inverter), GPDH420 (dehumidifier), Kogan SmarterHome 1500W Smart
-Panel Heater and Kogan SmarterHome Energy Monitoring SmartPlug. Other
-devices have been added at user request, and may or may not still be
-actively in use by others.
-
 Note that devices sometimes get firmware upgrades, or incompatible
 versions are sold under the same model name, so it is possible that
-the device will not work despite being listed below.
+the device will not work despite being listed. 
 
-### Heaters
+Battery powered devices such as door and window sensors, smoke alarms
+etc which do not use a hub will be impossible to support locally, due
+to the power management that they need to do to get acceptable battery
+life.  Currently hubs are also unsupported, but this is being worked
+on.
 
-- Goldair heater models beginning with the code GPPH, GCPV, GECO
-- Kogan Wi-Fi Convection Panel heaters - KAHTP and KAWFHTP models
-- Andersson GSH heater
-- Eurom Mon Soleil 300,600,800, 350,601,720 and 300,450,720 Verre heaters
-- Eurom Wall Designheat 2000 heater
-- Purline Hoti M100 heater
-- Wetair WCH-750 heater
-- Kogan Flame effect heater - KAWHMFP20BA model
-- Nedis convection heater - WIFIHTPL20F model
-- Ecostrad Accent iQ heating panels
-- Ecostrad iQ Ceramic radiators
-- Devola Patio heater
-- Betterlife BT1500 IR heater
-- Kogan Tower Heater - KASTHFP2KWA model
+A list of currently supported devices can be found in the [DEVICES.md](https://github.com/make-all/tuya-local/blob/main/DEVICES.md) file.
 
-### Air Conditioners / Heatpumps
+If your device is not listed, you can find the information required to add a
+configuration for it in the following locations:
 
-- ElectriQ 12WMINV
-- ElectriQ Airflex 15W
-- Tadiran Wind 65/3P
-- Fersk Vind 2
-- Carson CB PA280
-- Kogan 2.6kW portable air conditioner
-- Eberg Qubo Q40HD
-- Eberg Cooly C35HD
-- Star-Light air conditioner
-- TroniTechnik Hellnar Klimagerät
-- Be Cool BC14KL2101F
+1. When attempting to add the device, if it is not supported, you will either get a message saying the device cannot be recognised at all, or you will be offered a list of devices (maybe a list of length 1) that are partial matches, often simple switch is among them.  You can cancel the process at this point, and look in the Home Assistant log - there should be a message there containing the current data points (dps) returned by the device.
 
-### Pool heaters / heatpumps
+2. If you have signed up for iot.tuya.com to get your local key, you should also have access to the API Explorer under "Cloud".  One of the functions under the "Smart Home Device System" / "Device Control" section - the last "Get Device Specification Attribute" function listed, returns the dp_id in addition to range information that is needed for integer and enum data types.
 
-- Garden PAC pool heatpump (also works with Summerwave Si Series)
-- Madimack Elite V3 pool heatpump
-- Madimack(model unknown) pool heatpump (seems to match Fairland IPH45 as well)
-- Remora pool heatpump
-- BWT FI 45 heatpump
-- Poolex Silverline, Q-line and Vertigo heatpumps
-- IPS Pro Pool-Systems Heatpump (seems to match Fairland Inver-X as well)
-- W'eau Pool Heatpump
+3. By following the method described at the link below, you can find information for all the data points supported by your device, including those not listed by the API explorer method above and those that are only returned under specific conditions. Ignore the requirement for a Tuya Zigbee gateway, that is for Zigbee devices, and this integration does not currently support devices connected via a gateway, but the non-Zigbee/gateway specific parts of the procedure apply also to WiFi devices.
 
-- these seem to use a small number of common controllers with minor variations, and many other Pool heatpumps will work using the above configurations.
-  Report issues if there are any differences in presets or other features,
-  or if any of the "unknown" values that are returned as attributes can
-  be figured out.
+https://www.zigbee2mqtt.io/advanced/support-new-devices/03_find_tuya_data_points.html
 
-### Thermostats
-- Inkbird ITC306A thermostat smartplug
-- Inkbird ITC308 thermostat smartplug
-- Beca BHP-6000 Room Heat Pump control thermostat
-- Beca BHT-6000/8000 Floor Heating thermostat
-- Beca BHT-002/3000 Floor Heating thermostat (with external temp sensor)
-- Moes BHT-002 thermostat (without external temp sensor)
-- Beca BAC-002 thermostat
-- Awow/Mi-heat TH213 thermostat (two variants)
-- Siswell T29UTW thermostat
-- Siswell C16 thermostat _(rebadged as Warmme, Klima and others)_
-- Minco MH-1823D thermostat
-- Owon PCT513 thermostat
-- Beok TR9B thermostat _(rebadged as Vancoo and perhaps others)_
-- Hysen HY08WE-2 thermostat
-- Nashone MTS-700-WB thermostat smartplug
-- Jiahong ET-72W thermostat
-- Moes MS-103 Temperature and Humidity Switch (partial functions, temperature only)
 
-### Fans
-- Goldair GCPF315 fan
-- Anko HEGSM40 fan
-- Lexy F501 fan
-- Deta fan controller
-- Arlec Grid Connect Smart Ceiling Fan (with and without light)
-- Stirling FS1-40DC Pedestal fan
-- Aspen ASP 200 fan
-- TMWF02 fan controller
+If you file an issue to request support for a new device, please include the following information:
 
-### Air Purifiers
-- Renpho RP-AP001S air purifier
-- Poiema One air purifier
-- Himox H05 and H06 air purifiers
-- Tesla Pro and Mini air purifiers
-- Vork VK6067AW air purifier
+1. Identification of the device, such as model and brand name.
+2. As much information on the datapoints you can gather using the above methods.
+3. If manuals or webpages are available online, links to those help understand how to interpret the technical info above - even if they are not in English automatic translations can help, or information in them may help to identify identical devices sold under other brands in other countries that do have English or more detailed information available.
 
-### Dehumidifiers
-- Goldair GPDH420 dehumidifier
-- ElectriQ CD12PW dehumidifier
-- ElectriQ CD12PWv2 dehumidifier
-- ElectriQ CD20PRO-LE-V2 dehumidifier
-- ElectriQ CD25PRO-LE-V2 dehumidifier
-- ElectriQ DESD9LW dehumidifier
-- Kogan SmarterHome 7L Desiccant dehumidifier
-- JJPro JPD01 dehumidifer
-- JJPro JPD02 dehumidifier
-- Eesee Adam dehumidifier
-- Hyundai Sahara dehumidifier
-- AlecoAir D14 Purifying Dehumidifier
-
-### Humidifiers
-- Eanons QT-JS2014 Purifying humidifier
-- Wetair WAW-H1210LW humidifier
-- Wilfa Haze HU400BC humidifier
-
-### Kitchen Appliances
-- Kogan Glass 1.7L Smart Kettle (not reliably detected)
-
-### Smart Meter/Circuit Breaker
-- SmartMCB SMT006 Energy Meter
-- PC321-TY 3 phase Power Clamp meter
-- Compteur Digital Electric (single phase)
-
-### Battery Charger
-- Parkside PLGS 2012 A1 Smart Charger for powertools
-
-### SmartPlugs/Wall sockets
-- Generic Smartplug with Energy monitoring (older models)
-  _confirmed as working with Kogan and Blitzwolf Single Smartplugs_
-- Generic Smartplug with Energy monitoring (newer models)
-  _confirmed working with Kogan single smartplug with USB and Rillpac smartplugs_
-- Generic Smartplug with more advanced energy monitoring
-  _confirmed working with CBE smartplugs_
-- Generic Smartplug with some additional encoded schedule info.
-  _confirmed working as a simple switch and timer with Kashimura KJ-173_
-- Mirabella Genio Smart plug with USB
-- Grid Connect double outlet with Energy Monitoring, Master and Individual switches and Child Lock.
-- DIGOO DG-SP202 dual smartplug with energy monitoring and timers.
-- DIGOO DG-SP01 USB smartplug with night light.
-- Grid Connect double outlet wall socket
-- Woox R4028/DIGOO DG-PS01 3 outlet + USB powerstrip with individual timers.
-- ES01 3 outlet + USB powerstrip with individual timers.
-Other brands may work with the above configurations
-- MoesHouse Smartplug with RGBW nightlight
-- Logicom Strippy 4 way power strip with USB
-- 4 way power monitoring strip
-
-- Simple Switch - a switch only, can be a fallback for many other unsupported devices, to allow just power to be switched on/off.
-- Simple Switch with Timer - a single switch and timer, will probably work for a lot of smart switches that are not covered by the more advanced configs above.
-- Simple Switch with Timer v2 - the above with timer moved from dp 11 to 9, confirmed with a Nexxt 220V smart switch. 
-
-### Lights
-- Generic RGBCW/RGBWW lightbulb (confirmed with Lijun branded bulb, expected to match others also)
-
-### Covers
-- Simple Garage Door
-- Simple Blind Controller
-- Kogan Garage Door with tilt sensor
-- QS-WIFI-C01(BK) Curtain Module
-- M027 Curtain Module (sold under several brands, including zemismart, meterk and others)
-
-### Vacuum Cleaners
-- Lefant M213 Vacuum Cleaner (also works for Lefant M213S and APOSEN A550)
-- Kyvol E30 Vacuum Cleaner
-
-### Locks
-- Orion Grid Connect Smart Lock
-
-### Miscellaneous
-- Qoto 03 Smart Water Valve / Sprinkler Controller
-- SD123 HPR01 Human Presence Radar
+If you submit a pull request, please understand that the config file naming and details of the configuration may get modified before release - for example if your name was too generic, I may rename it to a more specific name, or conversely if the device appears to be generic and sold under many brands, I may change the brand specific name to something more general.  So it may be necessary to remove and re-add your device once it has been integrated into a release.
 
 ---
 
@@ -197,16 +73,18 @@ Other brands may work with the above configurations
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
-Installation is via the [Home Assistant Community Store
+Installation is easiest via the [Home Assistant Community Store
 (HACS)](https://hacs.xyz/), which is the best place to get third-party
-integrations for Home Assistant. Once you have HACS set up, simply
+integrations for Home Assistant. Once you have HACS set up, simply click the button below (requires My Homeassistant configured) or 
 follow the [instructions for adding a custom
 repository](https://hacs.xyz/docs/faq/custom_repositories) and then
 the integration will be available to install like any other.
 
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=make-all&repository=tuya-local&category=integration)
+
 ## Configuration
 
-You can easily configure your devices using the Integrations configuration UI.
+After installing, you can easily configure your devices using the Integrations configuration UI.  Go to Settings / Devices & Services and press the Add Integration button, or click the shortcut button below (requires My Homeassistant configured).
 
 [![Add Integration to your Home Assistant
 instance.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=tuya_local)
@@ -234,15 +112,22 @@ below](#finding-your-device-id-and-local-key).
 &nbsp;&nbsp;&nbsp;&nbsp;_(string) (Required)_ Local key retrieved
 [as per the instructions below](#finding-your-device-id-and-local-key).
 
+
+#### protocol_version
+
+&nbsp;&nbsp;&nbsp;&nbsp;_(string or float) (Required)_ Valid options are "auto", 3.1, 3.2, 3.3, 3.4.  If you aren't sure, choose "auto", but some 3.2 and maybe 3.4 devices may be misdetected as 3.3 (or vice-versa), so if your device does not seem to respond to commands reliably, try selecting between those protocol versions.
+
 At the end of this step, an attempt is made to connect to the device and see if
-it returns any data. For tuya protocol version 3.3 devices, success
-at this point indicates that all settings you have supplied are correct, but
-for protocol version 3.1 devices, the local key is only used for sending
-commands to the device, so if your local key is incorrect the setup will
-appear to work, and you will not see any problems until you try to control
-your device.  Note that each time you pair the device, the local key changes,
-so if you obtained the local key using the instructions linked above, then
-repaired with your manufacturer's app, then the key will have changed already.
+it returns any data. For tuya protocol version 3.1 devices, the local key is
+only used for sending commands to the device, so if your local key is
+incorrect the setup will appear to work, and you will not see any problems
+until you try to control your device.  For more recent Tuya protocol versions,
+the local key is used to decrypt received data as well, so an incorrect key
+will be detected at this step and cause an immediate failure.  Note that each
+time you pair the device, the local key changes, so if you obtained the
+local key using the instructions below, then re-paired with your
+manufacturer's app, then the key will have changed already.
+
 
 ### Stage Two
 
@@ -296,6 +181,31 @@ Many Tuya devices will stop responding if unable to connect to the
 Tuya servers for an extended period.  Reportedly, some devices act
 better offline if DNS as well as TCP connections is blocked.
 
+## General gotchas
+
+Many Tuya devices do not handle multiple commands sent in quick
+succession.  Some will reboot, possibly changing state in the process,
+others will go offline for 30s to a few minutes if you overload them.
+There is some rate limiting to try to avoid this, but it is not
+sufficient for many devices, and may not work across entities where
+you are sending commands to multiple entities on the same device.  The
+rate limiting also combines commands, which not all devices can
+handle. If you are sending commands from an automation, it is best to
+add delays between commands - if your automation is for multiple
+devices, it might be enough to send commands to other devices first
+before coming back to send a second command to the first one, or you
+may still need a delay after that.  The exact timing depends on the
+device, so you may need to experiment to find the minimum delay that
+gives reliable results.
+
+Some devices can handle multiple commands in a single message, so for
+entity platforms that support it (eg climate `set_temperature` can
+include presets, lights pretty much everything is set through
+`turn_on`) multiple settings are sent at once.  But some devices do
+not like this and require all commands to set only a single dp at a
+time, so you may need to experiment with your automations to see
+whether a single command or multiple commands (with delays, see above)
+work best with your devices.
 
 ## Heater gotchas
 
@@ -369,6 +279,11 @@ the internet, otherwise an integration sensor based on the Power sensor
 will need to be set up on the Home Assistant side, and the Energy sensor
 ignored.
 
+For the amount of consumed energy, it may be reasonable to use an additional
+helper - the [Riemann integral](https://www.home-assistant.io/integrations/integration/).
+Select `power` of switch as the sensor for it. The result of the integral will be
+calculated in `(k/M/G/T)W*h` and will correspond to the consumed energy.
+
 ## Kogan Kettle gotchas
 
 Although these look like simple devices, their behaviour is not
@@ -378,15 +293,20 @@ temperature sensor so are not detected at all.
 
 ## Beca thermostat gotchas
 
-These devices support switching between Celcius and Fahrenheit on the control
-panel, but do not provide any information over the Tuya local protocol about
-which units are selected.  Two configurations for this device are provided,
-`beca_bhp6000_thermostat_c` and `beca_bhp6000_thermostat_f`, please select
-the appropriate one for the temperature units you use.  If you change the
-units on the device control panel, you will need to delete the device from
-Home Assistant and set it up again.
+Some of these devices support switching between Celcius and Fahrenheit
+on the control panel, but do not provide any information over the Tuya
+local protocol about which units are selected.  Three configurations
+for BHP6000 are provided, `beca_bhp6000_thermostat_c` and
+`beca_bhp6000_thermostat_f`, which use Celsius and Fahrenheit
+respectively, and `beca_bhp6000_thermostat_mapped` for a buggy looking
+firmware which displays the temperature on the thermostat in Celsius
+in increments of half a degree, but uses a slightly offset Fahrenheit
+for the protocol, as detailed in issue #215.  Please select the appropriate
+config for the temperature units you use.  If you change the units on the
+device control panel, you will need to delete the device from Home Assistant
+and set it up again.
 
-## Siswell C19 thermostat gotchas
+## Saswell C16 thermostat gotchas
 
 These support configuration as either heating or cooling controllers, but
 only have one output.  The HVAC mode is provided as an indicator of which
@@ -396,19 +316,34 @@ switch the thermostat to the wrong mode from HA.
 
 ## Finding your device ID and local key
 
-You can find these keys the same way as you would for any Tuya local integration. You'll need the Goldair app or the Tuya Tuya Smart app (the Goldair app is just a rebranded Tuya app), then follow these instructions.
+The easiest way to find your local key is with the Tuya Developer portal.
+If you have previously configured the built in Tuya cloud integration, or
+localtuya, you probably already have a developer account with the Tuya app
+linked.  Note that you need to use Tuya's own branded "Tuya Smart" or
+"SmartLife" apps to access devices through the developer portal.  For most
+devices, your device will work identically with those apps as it does with
+your manufacturer's branded app, but there are a few devices where that is
+not the case and you will need to decide whether you are willing to potentially
+lose access to some functionality (such as mapping for some vacuum cleaners).
 
-- [Instructions for iOS](https://github.com/codetheweb/tuyapi/blob/master/docs/SETUP.md)
-- [Instructions for Android](https://github.com/codetheweb/tuyapi/blob/cdb4289/docs/SETUP_DEPRECATED.md#capture-https-traffic)
+If you log on to your Developer Portal account, under Cloud you should
+be able to get a list of your devices, which contains the "Device ID".
+If you don't see them, check your server is set correctly at the top
+of the page.  Make a note of the Device IDs for all your devices, then
+select Cloud on the side bar again and go to the API Explorer.
+
+Under General Device Capabilities / General Devices Management, select the
+"Get Device Information" function, and enter your Device ID.  In the results
+you should see your local_key.
+
+The IP address you should be able to get from your router.  Using a
+command line Tuya client like tuyaapi/cli or
+[tinytuya](https://github.com/jasonacox/tinytuya) you may also be able
+to scan your network for Tuya devices to find the IP address and also automate
+the above process of connecting to the portal and getting the local key.
 
 ## Next steps
 
 1. This component is mosty unit-tested thanks to the upstream project, but there are a few more to complete. Feel free to use existing specs as inspiration and the Sonar Cloud analysis to see where the gaps are.
 2. Once unit tests are complete, the next task is to complete the Home Assistant quality checklist before considering submission to the HA team for inclusion in standard installations.
 3. Discovery seems possible with the new tinytuya library, though the steps to get a local key will most likely remain manual.  Discovery also returns a productKey, which might help make the device detection more reliable where different devices use the same dps mapping but different names for the presets for example.
-
-Please report any issues and feel free to raise pull requests.
-[Many others](https://github.com/make-all/tuya-local/blob/main/ACKNOWLEDGEMENTS.md) have contributed their help already.
-
-
-[![BuyMeCoffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jasonrumney)

@@ -5,12 +5,12 @@ from homeassistant.components.sensor import (
     STATE_CLASS_TOTAL_INCREASING,
 )
 from homeassistant.const import (
-    ELECTRIC_CURRENT_AMPERE,
-    ELECTRIC_POTENTIAL_VOLT,
-    ENERGY_KILO_WATT_HOUR,
-    FREQUENCY_HERTZ,
-    POWER_WATT,
-    TEMP_CELSIUS,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
+    UnitOfFrequency,
+    UnitOfEnergy,
+    UnitOfPower,
+    UnitOfTemperature,
 )
 
 from ..const import PC321TY_POWERCLAMP_PAYLOAD
@@ -52,7 +52,7 @@ class TestPC321TYPowerClamp(MultiSensorTests, TuyaDeviceTestCase):
                 {
                     "dps": TOTALENERGY_DP,
                     "name": "sensor",
-                    "unit": ENERGY_KILO_WATT_HOUR,
+                    "unit": UnitOfEnergy.KILO_WATT_HOUR,
                     "device_class": SensorDeviceClass.ENERGY,
                     "state_class": STATE_CLASS_TOTAL_INCREASING,
                     "testdata": (12345, 123.45),
@@ -60,7 +60,7 @@ class TestPC321TYPowerClamp(MultiSensorTests, TuyaDeviceTestCase):
                 {
                     "dps": VOLTAGE1_DP,
                     "name": "sensor_voltage_a",
-                    "unit": ELECTRIC_POTENTIAL_VOLT,
+                    "unit": UnitOfElectricPotential.VOLT,
                     "device_class": SensorDeviceClass.VOLTAGE,
                     "state_class": STATE_CLASS_MEASUREMENT,
                     "testdata": (2348, 234.8),
@@ -68,7 +68,7 @@ class TestPC321TYPowerClamp(MultiSensorTests, TuyaDeviceTestCase):
                 {
                     "dps": CURRENT1_DP,
                     "name": "sensor_current_a",
-                    "unit": ELECTRIC_CURRENT_AMPERE,
+                    "unit": UnitOfElectricCurrent.AMPERE,
                     "device_class": SensorDeviceClass.CURRENT,
                     "state_class": STATE_CLASS_MEASUREMENT,
                     "testdata": (4567, 4.567),
@@ -76,7 +76,7 @@ class TestPC321TYPowerClamp(MultiSensorTests, TuyaDeviceTestCase):
                 {
                     "dps": POWER1_DP,
                     "name": "sensor_power_a",
-                    "unit": POWER_WATT,
+                    "unit": UnitOfPower.WATT,
                     "state_class": STATE_CLASS_MEASUREMENT,
                     "device_class": SensorDeviceClass.POWER,
                 },
@@ -90,15 +90,13 @@ class TestPC321TYPowerClamp(MultiSensorTests, TuyaDeviceTestCase):
                 {
                     "dps": ENERGY1_DP,
                     "name": "sensor_energy_a",
-                    "unit": ENERGY_KILO_WATT_HOUR,
-                    "device_class": SensorDeviceClass.ENERGY,
-                    "state_class": STATE_CLASS_TOTAL_INCREASING,
+                    "unit": UnitOfEnergy.KILO_WATT_HOUR,
                     "testdata": (12345, 123.45),
                 },
                 {
                     "dps": VOLTAGE2_DP,
                     "name": "sensor_voltage_b",
-                    "unit": ELECTRIC_POTENTIAL_VOLT,
+                    "unit": UnitOfElectricPotential.VOLT,
                     "device_class": SensorDeviceClass.VOLTAGE,
                     "state_class": STATE_CLASS_MEASUREMENT,
                     "testdata": (2348, 234.8),
@@ -106,7 +104,7 @@ class TestPC321TYPowerClamp(MultiSensorTests, TuyaDeviceTestCase):
                 {
                     "dps": CURRENT2_DP,
                     "name": "sensor_current_b",
-                    "unit": ELECTRIC_CURRENT_AMPERE,
+                    "unit": UnitOfElectricCurrent.AMPERE,
                     "device_class": SensorDeviceClass.CURRENT,
                     "state_class": STATE_CLASS_MEASUREMENT,
                     "testdata": (4567, 4.567),
@@ -114,7 +112,7 @@ class TestPC321TYPowerClamp(MultiSensorTests, TuyaDeviceTestCase):
                 {
                     "dps": POWER2_DP,
                     "name": "sensor_power_b",
-                    "unit": POWER_WATT,
+                    "unit": UnitOfPower.WATT,
                     "device_class": SensorDeviceClass.POWER,
                     "state_class": STATE_CLASS_MEASUREMENT,
                 },
@@ -128,15 +126,13 @@ class TestPC321TYPowerClamp(MultiSensorTests, TuyaDeviceTestCase):
                 {
                     "dps": ENERGY2_DP,
                     "name": "sensor_energy_b",
-                    "unit": ENERGY_KILO_WATT_HOUR,
-                    "device_class": SensorDeviceClass.ENERGY,
-                    "state_class": STATE_CLASS_TOTAL_INCREASING,
+                    "unit": UnitOfEnergy.KILO_WATT_HOUR,
                     "testdata": (12345, 123.45),
                 },
                 {
                     "dps": VOLTAGE3_DP,
                     "name": "sensor_voltage_c",
-                    "unit": ELECTRIC_POTENTIAL_VOLT,
+                    "unit": UnitOfElectricPotential.VOLT,
                     "device_class": SensorDeviceClass.VOLTAGE,
                     "state_class": STATE_CLASS_MEASUREMENT,
                     "testdata": (2348, 234.8),
@@ -144,7 +140,7 @@ class TestPC321TYPowerClamp(MultiSensorTests, TuyaDeviceTestCase):
                 {
                     "dps": CURRENT3_DP,
                     "name": "sensor_current_c",
-                    "unit": ELECTRIC_CURRENT_AMPERE,
+                    "unit": UnitOfElectricCurrent.AMPERE,
                     "device_class": SensorDeviceClass.CURRENT,
                     "state_class": STATE_CLASS_MEASUREMENT,
                     "testdata": (4567, 4.567),
@@ -152,7 +148,7 @@ class TestPC321TYPowerClamp(MultiSensorTests, TuyaDeviceTestCase):
                 {
                     "dps": POWER3_DP,
                     "name": "sensor_power_c",
-                    "unit": POWER_WATT,
+                    "unit": UnitOfPower.WATT,
                     "state_class": STATE_CLASS_MEASUREMENT,
                     "device_class": SensorDeviceClass.POWER,
                 },
@@ -166,15 +162,13 @@ class TestPC321TYPowerClamp(MultiSensorTests, TuyaDeviceTestCase):
                 {
                     "dps": ENERGY3_DP,
                     "name": "sensor_energy_c",
-                    "unit": ENERGY_KILO_WATT_HOUR,
-                    "device_class": SensorDeviceClass.ENERGY,
-                    "state_class": STATE_CLASS_TOTAL_INCREASING,
+                    "unit": UnitOfEnergy.KILO_WATT_HOUR,
                     "testdata": (12345, 123.45),
                 },
                 {
                     "dps": TOTALCURRENT_DP,
                     "name": "sensor_total_current",
-                    "unit": ELECTRIC_CURRENT_AMPERE,
+                    "unit": UnitOfElectricCurrent.AMPERE,
                     "device_class": SensorDeviceClass.CURRENT,
                     "state_class": STATE_CLASS_MEASUREMENT,
                     "testdata": (12345, 12.345),
@@ -182,21 +176,21 @@ class TestPC321TYPowerClamp(MultiSensorTests, TuyaDeviceTestCase):
                 {
                     "dps": TOTALPOWER_DP,
                     "name": "sensor_total_active_power",
-                    "unit": POWER_WATT,
+                    "unit": UnitOfPower.WATT,
                     "state_class": STATE_CLASS_MEASUREMENT,
                     "device_class": SensorDeviceClass.POWER,
                 },
                 {
                     "dps": FREQUENCY_DP,
                     "name": "sensor_frequency",
-                    "unit": FREQUENCY_HERTZ,
+                    "unit": UnitOfFrequency.HERTZ,
                     "state_class": STATE_CLASS_MEASUREMENT,
                     "device_class": SensorDeviceClass.FREQUENCY,
                 },
                 {
                     "dps": TEMPERATURE_DP,
                     "name": "sensor_temperature",
-                    "unit": TEMP_CELSIUS,
+                    "unit": UnitOfTemperature.CELSIUS,
                     "device_class": SensorDeviceClass.TEMPERATURE,
                     "state_class": STATE_CLASS_MEASUREMENT,
                     "testdata": (234, 23.4),

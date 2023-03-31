@@ -2,11 +2,11 @@
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.components.switch import SwitchDeviceClass
 from homeassistant.const import (
-    ELECTRIC_CURRENT_MILLIAMPERE,
-    ELECTRIC_POTENTIAL_VOLT,
-    ENERGY_WATT_HOUR,
-    POWER_WATT,
-    TIME_SECONDS,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
+    UnitOfTime,
+    UnitOfEnergy,
+    UnitOfPower,
 )
 
 from ..const import GRIDCONNECT_2SOCKET_PAYLOAD
@@ -79,8 +79,6 @@ class TestGridConnectDoubleSwitch(
                     "name": "switch_master",
                     "dps": MASTER_DPS,
                     "device_class": SwitchDeviceClass.OUTLET,
-                    "power_dps": POWER_DPS,
-                    "power_scale": 10,
                 },
             ]
         )
@@ -89,22 +87,20 @@ class TestGridConnectDoubleSwitch(
                 {
                     "name": "sensor_energy",
                     "dps": ENERGY_DPS,
-                    "device_class": SensorDeviceClass.ENERGY,
-                    "unit": ENERGY_WATT_HOUR,
-                    "state_class": "total_increasing",
+                    "unit": UnitOfEnergy.WATT_HOUR,
                 },
                 {
                     "name": "sensor_current",
                     "dps": CURRENT_DPS,
                     "device_class": SensorDeviceClass.CURRENT,
-                    "unit": ELECTRIC_CURRENT_MILLIAMPERE,
+                    "unit": UnitOfElectricCurrent.MILLIAMPERE,
                     "state_class": "measurement",
                 },
                 {
                     "name": "sensor_power",
                     "dps": POWER_DPS,
                     "device_class": SensorDeviceClass.POWER,
-                    "unit": POWER_WATT,
+                    "unit": UnitOfPower.WATT,
                     "state_class": "measurement",
                     "testdata": (1234, 123.4),
                 },
@@ -112,7 +108,7 @@ class TestGridConnectDoubleSwitch(
                     "name": "sensor_voltage",
                     "dps": VOLTAGE_DPS,
                     "device_class": SensorDeviceClass.VOLTAGE,
-                    "unit": ELECTRIC_POTENTIAL_VOLT,
+                    "unit": UnitOfElectricPotential.VOLT,
                     "state_class": "measurement",
                     "testdata": (2345, 234.5),
                 },
@@ -124,13 +120,13 @@ class TestGridConnectDoubleSwitch(
                     "name": "number_timer_1",
                     "dps": COUNTDOWN1_DPS,
                     "max": 86400,
-                    "unit": TIME_SECONDS,
+                    "unit": UnitOfTime.SECONDS,
                 },
                 {
                     "name": "number_timer_2",
                     "dps": COUNTDOWN2_DPS,
                     "max": 86400,
-                    "unit": TIME_SECONDS,
+                    "unit": UnitOfTime.SECONDS,
                 },
             ]
         )
@@ -148,49 +144,35 @@ class TestGridConnectDoubleSwitch(
             ],
         )
 
-    async def test_turn_on_fails_when_master_is_off(self):
-        self.dps[MASTER_DPS] = False
-        self.dps[SWITCH1_DPS] = False
-        self.dps[SWITCH2_DPS] = False
-        with self.assertRaises(AttributeError):
-            await self.multiSwitch["switch_outlet_1"].async_turn_on()
-        with self.assertRaises(AttributeError):
-            await self.multiSwitch["switch_outlet_2"].async_turn_on()
-
     # Since we have attributes, override the default test which expects none.
     def test_multi_switch_state_attributes(self):
-        self.dps[COUNTDOWN1_DPS] = 9
-        self.dps[COUNTDOWN2_DPS] = 10
-        self.dps[VOLTAGE_DPS] = 2350
-        self.dps[CURRENT_DPS] = 1234
-        self.dps[POWER_DPS] = 5678
         self.dps[TEST_DPS] = 21
-        self.dps[CALIBV_DPS] = 22
-        self.dps[CALIBA_DPS] = 23
-        self.dps[CALIBW_DPS] = 24
-        self.dps[CALIBE_DPS] = 25
         self.assertDictEqual(
             self.multiSwitch["switch_master"].extra_state_attributes,
             {
-                "current_a": 1.234,
-                "voltage_v": 235.0,
-                "current_power_w": 567.8,
                 "test_bit": 21,
-                "voltage_calibration": 22,
-                "current_calibration": 23,
-                "power_calibration": 24,
-                "energy_calibration": 25,
             },
         )
+
+    def test_multi_sensor_extra_state_attributes(self):
+        self.dps[CALIBA_DPS] = 1
+        self.dps[CALIBE_DPS] = 2
+        self.dps[CALIBV_DPS] = 3
+        self.dps[CALIBW_DPS] = 4
+
         self.assertDictEqual(
-            self.multiSwitch["switch_outlet_1"].extra_state_attributes,
-            {
-                "countdown": 9,
-            },
+            self.multiSensor["sensor_current"].extra_state_attributes,
+            {"calibration": 1},
         )
         self.assertDictEqual(
-            self.multiSwitch["switch_outlet_2"].extra_state_attributes,
-            {
-                "countdown": 10,
-            },
+            self.multiSensor["sensor_energy"].extra_state_attributes,
+            {"calibration": 2},
+        )
+        self.assertDictEqual(
+            self.multiSensor["sensor_voltage"].extra_state_attributes,
+            {"calibration": 3},
+        )
+        self.assertDictEqual(
+            self.multiSensor["sensor_power"].extra_state_attributes,
+            {"calibration": 4},
         )

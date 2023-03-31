@@ -8,7 +8,7 @@ primary_entity:
       name: switch
 secondary_entities:
   - entity: light
-    name: Night Light
+    name: Night light
     dps:
       - id: 27
         name: switch
@@ -22,9 +22,9 @@ secondary_entities:
           - dps_val: colour
             value: rgbw
           - dps_val: scene
-            value: colorloop
+            value: Scene
           - dps_val: music
-            value: random
+            value: Music
           - dps_val: scene_1
             value: Scene 1
           - dps_val: scene_2

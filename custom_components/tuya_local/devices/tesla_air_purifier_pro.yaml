@@ -1,4 +1,4 @@
-name: Tesla Smart Air Purifier Pro M
+name: Tesla Pro M smart air purifier
 products:
   - id: 3hjcrjktvkoim7zu
 primary_entity:
@@ -45,7 +45,7 @@ secondary_entities:
         name: switch
         type: boolean        
   - entity: switch
-    name: UV Sterilization
+    name: UV sterilization
     category: config
     icon: "mdi:sun-wireless"
     dps:
@@ -63,7 +63,7 @@ secondary_entities:
         unit: "%"
         readonly: true
   - entity: sensor
-    name: Current Temperature
+    name: Current temperature
     category: diagnostic
     class: temperature
     dps:
@@ -74,7 +74,7 @@ secondary_entities:
         unit: "°C"
         readonly: true
   - entity: sensor
-    name: Current Humidity
+    name: Current humidity
     category: diagnostic
     class: humidity
     mode: box
@@ -98,10 +98,10 @@ secondary_entities:
             value: "cancel"
           - dps_val: "1h"
             value: "1 hour"
-          - dps_val: "2h"
-            value: "2 hours"
           - dps_val: "4h"
             value: "4 hours"
+          - dps_val: "8h"
+            value: "8 hours"
   - entity: sensor
     name: PM2.5
     class: pm25

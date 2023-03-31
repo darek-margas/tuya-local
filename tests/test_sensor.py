@@ -1,16 +1,22 @@
 """Tests for the sensor entity."""
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+import pytest
 from unittest.mock import AsyncMock, Mock
 
 from custom_components.tuya_local.const import (
     CONF_DEVICE_ID,
+    CONF_PROTOCOL_VERSION,
     CONF_TYPE,
     DOMAIN,
 )
-from custom_components.tuya_local.generic.sensor import TuyaLocalSensor
-from custom_components.tuya_local.sensor import async_setup_entry
+from custom_components.tuya_local.helpers.device_config import TuyaEntityConfig
+from custom_components.tuya_local.sensor import (
+    async_setup_entry,
+    TuyaLocalSensor,
+)
 
 
+@pytest.mark.asyncio
 async def test_init_entry(hass):
     """Test the initialisation."""
     entry = MockConfigEntry(
@@ -18,9 +24,7 @@ async def test_init_entry(hass):
         data={
             CONF_TYPE: "goldair_dehumidifier",
             CONF_DEVICE_ID: "dummy",
-            "humidifier": False,
-            "sensor_current_temperature": True,
-            "sensor_current_humidity": False,
+            CONF_PROTOCOL_VERSION: "auto",
         },
     )
     m_add_entities = Mock()
@@ -38,6 +42,7 @@ async def test_init_entry(hass):
     m_add_entities.assert_called_once()
 
 
+@pytest.mark.asyncio
 async def test_init_entry_fails_if_device_has_no_sensor(hass):
     """Test initialisation when device has no matching entity"""
     entry = MockConfigEntry(
@@ -45,7 +50,7 @@ async def test_init_entry_fails_if_device_has_no_sensor(hass):
         data={
             CONF_TYPE: "mirabella_genio_usb",
             CONF_DEVICE_ID: "dummy",
-            "sensor": True,
+            CONF_PROTOCOL_VERSION: "auto",
         },
     )
     m_add_entities = Mock()
@@ -62,11 +67,16 @@ async def test_init_entry_fails_if_device_has_no_sensor(hass):
     m_add_entities.assert_not_called()
 
 
+@pytest.mark.asyncio
 async def test_init_entry_fails_if_config_is_missing(hass):
     """Test initialisation when device has no matching entity"""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data={CONF_TYPE: "non_existing", CONF_DEVICE_ID: "dummy", "sensor": True},
+        data={
+            CONF_TYPE: "non_existing",
+            CONF_DEVICE_ID: "dummy",
+            CONF_PROTOCOL_VERSION: "auto",
+        },
     )
     m_add_entities = Mock()
     m_device = AsyncMock()
@@ -80,3 +90,32 @@ async def test_init_entry_fails_if_config_is_missing(hass):
     except ValueError:
         pass
     m_add_entities.assert_not_called()
+
+
+def test_sensor_suggested_display_precision():
+    mock_device = Mock()
+    config = TuyaEntityConfig(
+        mock_device,
+        {
+            "entity": "sensor",
+            "dps": [
+                {
+                    "id": 1,
+                    "name": "sensor",
+                    "type": "integer",
+                    "precision": 1,
+                }
+            ],
+        },
+    )
+    sensor = TuyaLocalSensor(mock_device, config)
+    assert sensor.suggested_display_precision == 1
+    config = TuyaEntityConfig(
+        mock_device,
+        {
+            "entity": "sensor",
+            "dps": [{"id": 1, "name": "sensor", "type": "integer"}],
+        },
+    )
+    sensor = TuyaLocalSensor(mock_device, config)
+    assert sensor.suggested_display_precision is None

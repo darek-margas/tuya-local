@@ -1,33 +1,24 @@
-name: TR9B Thermostat
+name: Beok TR9B thermostat
 primary_entity:
   entity: climate
   dps:
     - id: 1
       type: boolean
-      name: power
-      hidden: true
+      name: hvac_mode
       mapping:
         - dps_val: false
           value: "off"
+        - dps_val: true
+          constraint: mode
+          conditions:
+            - dps_val: auto
+              value: auto
+            - dps_val: manual
+              value: heat
     - id: 2
       type: string
-      name: hvac_mode
-      mapping:
-        - dps_val: "auto"
-          constraint: power
-          conditions:
-            - dps_val: false
-              value_redirect: power
-              value: "off"
-            - dps_val: true
-              value: auto
-        - dps_val: manual
-          constraint: power
-          conditions:
-            - dps_val: false
-              value_redirect: power
-            - dps_val: true
-              value: heat
+      name: mode
+      hidden: true
     - id: 16
       type: integer
       name: temperature
@@ -83,7 +74,7 @@ secondary_entities:
         type: boolean
         name: switch
   - entity: select
-    name: Temperature Unit
+    name: Temperature unit
     category: config
     icon: "mdi:temperature-celsius"
     dps:
@@ -124,7 +115,7 @@ secondary_entities:
           - dps_val: close
             value: False
   - entity: lock
-    name: "Child Lock"
+    name: "Child lock"
     category: config
     dps:
       - id: 40
@@ -148,8 +139,9 @@ secondary_entities:
             value: False
           - value: True
   - entity: number
-    name: High Temperature Limit
+    name: High temperature limit
     category: config
+    class: temperature
     icon: "mdi:thermometer"
     dps:
       - id: 19
@@ -163,8 +155,9 @@ secondary_entities:
           - scale: 10
             step: 10
   - entity: number
-    name: Low Temperature Limit
+    name: Low temperature limit
     category: config
+    class: temperature
     dps:
       - id: 26
         name: value

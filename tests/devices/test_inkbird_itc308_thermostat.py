@@ -3,7 +3,8 @@ from homeassistant.components.climate.const import (
     ClimateEntityFeature,
     HVACAction,
 )
-from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT, TIME_MINUTES
+from homeassistant.components.number.const import NumberDeviceClass
+from homeassistant.const import UnitOfTime, UnitOfTemperature
 
 
 from ..const import INKBIRD_ITC308_THERMOSTAT_PAYLOAD
@@ -99,25 +100,27 @@ class TestInkbirdITC308Thermostat(
                     "name": "number_compressor_delay",
                     "dps": TIME_THRES_DPS,
                     "max": 10,
-                    "unit": TIME_MINUTES,
+                    "unit": UnitOfTime.MINUTES,
                 },
                 {
                     "name": "number_high_temperature_limit",
                     "dps": HIGH_THRES_DPS,
+                    "device_class": NumberDeviceClass.TEMPERATURE,
                     "scale": 10,
                     "step": 0.1,
                     "min": -50,
                     "max": 99.9,
-                    "unit": TEMP_CELSIUS,
+                    "unit": UnitOfTemperature.CELSIUS,
                 },
                 {
                     "name": "number_low_temperature_limit",
                     "dps": LOW_THRES_DPS,
+                    "device_class": NumberDeviceClass.TEMPERATURE,
                     "scale": 10,
                     "step": 0.1,
                     "min": -50,
                     "max": 99.9,
-                    "unit": TEMP_CELSIUS,
+                    "unit": UnitOfTemperature.CELSIUS,
                 },
                 {
                     "name": "number_cooling_hysteresis",
@@ -126,7 +129,7 @@ class TestInkbirdITC308Thermostat(
                     "step": 0.1,
                     "min": 0.3,
                     "max": 15.0,
-                    "unit": TEMP_CELSIUS,
+                    "unit": UnitOfTemperature.CELSIUS,
                 },
                 {
                     "name": "number_heating_hysteresis",
@@ -135,7 +138,7 @@ class TestInkbirdITC308Thermostat(
                     "step": 0.1,
                     "min": 0.3,
                     "max": 15.0,
-                    "unit": TEMP_CELSIUS,
+                    "unit": UnitOfTemperature.CELSIUS,
                 },
             ]
         )
@@ -201,10 +204,10 @@ class TestInkbirdITC308Thermostat(
 
     def test_temperature_unit(self):
         self.dps[UNIT_DPS] = "F"
-        self.assertEqual(self.subject.temperature_unit, TEMP_FAHRENHEIT)
+        self.assertEqual(self.subject.temperature_unit, UnitOfTemperature.FAHRENHEIT)
 
         self.dps[UNIT_DPS] = "C"
-        self.assertEqual(self.subject.temperature_unit, TEMP_CELSIUS)
+        self.assertEqual(self.subject.temperature_unit, UnitOfTemperature.CELSIUS)
 
     def test_hvac_action(self):
         self.dps[STATUS_DPS] = "1"

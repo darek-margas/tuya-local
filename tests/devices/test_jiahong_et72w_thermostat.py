@@ -2,15 +2,14 @@ from homeassistant.components.climate.const import (
     ClimateEntityFeature,
     HVACMode,
 )
+from homeassistant.components.number.const import NumberDeviceClass
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     STATE_CLASS_MEASUREMENT,
-    STATE_CLASS_TOTAL_INCREASING,
 )
 from homeassistant.const import (
-    ENERGY_KILO_WATT_HOUR,
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
+    UnitOfEnergy,
+    UnitOfTemperature,
 )
 from ..const import JIAHONG_ET72W_PAYLOAD
 from ..helpers import assert_device_properties_set
@@ -99,11 +98,12 @@ class TestJiahongEt72wThermostat(
         self.setUpBasicNumber(
             TEMPLIMIT_DPS,
             self.entities.get("number_room_temperature_limit"),
+            device_class=NumberDeviceClass.TEMPERATURE,
             min=10.0,
             max=40.0,
             step=0.5,
             scale=10,
-            unit=TEMP_CELSIUS,
+            unit=UnitOfTemperature.CELSIUS,
         )
         self.setUpMultiSensors(
             [
@@ -112,7 +112,7 @@ class TestJiahongEt72wThermostat(
                     "name": "sensor_room_temperature",
                     "device_class": SensorDeviceClass.TEMPERATURE,
                     "state_class": STATE_CLASS_MEASUREMENT,
-                    "unit": TEMP_CELSIUS,
+                    "unit": UnitOfTemperature.CELSIUS,
                     "testdata": (195, 19.5),
                 },
                 {
@@ -120,15 +120,13 @@ class TestJiahongEt72wThermostat(
                     "name": "sensor_floor_temperature",
                     "device_class": SensorDeviceClass.TEMPERATURE,
                     "state_class": STATE_CLASS_MEASUREMENT,
-                    "unit": TEMP_CELSIUS,
+                    "unit": UnitOfTemperature.CELSIUS,
                     "testdata": (214, 21.4),
                 },
                 {
                     "dps": ENERGY_DPS,
                     "name": "sensor_energy",
-                    "device_class": SensorDeviceClass.ENERGY,
-                    "state_class": STATE_CLASS_TOTAL_INCREASING,
-                    "unit": ENERGY_KILO_WATT_HOUR,
+                    "unit": UnitOfEnergy.KILO_WATT_HOUR,
                     "testdata": (1234, 123.4),
                 },
             ]
@@ -153,14 +151,14 @@ class TestJiahongEt72wThermostat(
         self.dps[UNIT_DPS] = False
         self.assertEqual(
             self.subject.temperature_unit,
-            TEMP_CELSIUS,
+            UnitOfTemperature.CELSIUS,
         )
         self.assertEqual(self.subject.target_temperature_step, 0.5)
 
         self.dps[UNIT_DPS] = True
         self.assertEqual(
             self.subject.temperature_unit,
-            TEMP_FAHRENHEIT,
+            UnitOfTemperature.FAHRENHEIT,
         )
         self.assertEqual(self.subject.target_temperature_step, 3.0)
 

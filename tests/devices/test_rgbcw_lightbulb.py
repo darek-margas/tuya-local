@@ -1,10 +1,8 @@
 from homeassistant.components.light import (
     ColorMode,
     LightEntityFeature,
-    EFFECT_COLORLOOP,
-    EFFECT_RANDOM,
 )
-from homeassistant.const import TIME_MINUTES
+from homeassistant.const import UnitOfTime
 
 from ..const import RGBCW_LIGHTBULB_PAYLOAD
 from ..helpers import assert_device_properties_set
@@ -31,10 +29,10 @@ class TestRGBCWLightbulb(BasicNumberTests, TuyaDeviceTestCase):
             TIMER_DPS,
             self.entities.get("number_timer"),
             max=1440.0,
-            unit=TIME_MINUTES,
+            unit=UnitOfTime.MINUTES,
             scale=60,
         )
-        self.mark_secondary(["number_timer"])
+        self.mark_secondary(["number_timer", "select_scene"])
 
     def test_is_on(self):
         self.dps[SWITCH_DPS] = True
@@ -53,6 +51,8 @@ class TestRGBCWLightbulb(BasicNumberTests, TuyaDeviceTestCase):
         self.assertAlmostEqual(self.subject.color_temp, 153, 0)
         self.dps[COLORTEMP_DPS] = 0
         self.assertAlmostEqual(self.subject.color_temp, 500, 0)
+        self.dps[COLORTEMP_DPS] = None
+        self.assertEqual(self.subject.color_temp, None)
 
     def test_color_mode(self):
         self.dps[MODE_DPS] = "white"
@@ -72,17 +72,25 @@ class TestRGBCWLightbulb(BasicNumberTests, TuyaDeviceTestCase):
             (255, 255, 0, 255),
         )
 
+    # Lights have been observed to return N, O and P mixed in with the hex
+    # number.  Maybe it has some special meaning, but since it is undocumented,
+    # we just want to reject such values without an exception.
+    def test_invalid_rgbw_color(self):
+        self.dps[HSV_DPS] = "0010001000OP"
+        self.dps[BRIGHTNESS_DPS] = 1000
+        self.assertIsNone(self.subject.rgbw_color)
+
     def test_effect_list(self):
         self.assertCountEqual(
             self.subject.effect_list,
-            [EFFECT_COLORLOOP, EFFECT_RANDOM],
+            ["Scene", "Music"],
         )
 
     def test_effect(self):
         self.dps[MODE_DPS] = "scene"
-        self.assertEqual(self.subject.effect, EFFECT_COLORLOOP)
+        self.assertEqual(self.subject.effect, "Scene")
         self.dps[MODE_DPS] = "music"
-        self.assertEqual(self.subject.effect, EFFECT_RANDOM)
+        self.assertEqual(self.subject.effect, "Music")
         self.dps[MODE_DPS] = "white"
         self.assertIsNone(self.subject.effect)
         self.dps[MODE_DPS] = "colour"
@@ -98,6 +106,7 @@ class TestRGBCWLightbulb(BasicNumberTests, TuyaDeviceTestCase):
         self.assertEqual(self.subject.supported_features, LightEntityFeature.EFFECT)
 
     async def test_turn_on(self):
+        self.dps[SWITCH_DPS] = False
         async with assert_device_properties_set(
             self.subject._device,
             {SWITCH_DPS: True},
@@ -111,29 +120,56 @@ class TestRGBCWLightbulb(BasicNumberTests, TuyaDeviceTestCase):
         ):
             await self.subject.async_turn_off()
 
-    async def test_set_brightness(self):
+    async def test_set_brightness_white(self):
+        self.dps[SWITCH_DPS] = True
+        self.dps[MODE_DPS] = "white"
+
         async with assert_device_properties_set(
             self.subject._device,
             {
-                SWITCH_DPS: True,
-                MODE_DPS: "white",
                 BRIGHTNESS_DPS: 502,
             },
         ):
-            await self.subject.async_turn_on(color_mode=ColorMode.WHITE, brightness=128)
+            await self.subject.async_turn_on(brightness=128)
 
-    async def test_set_rgbw(self):
-        self.dps[BRIGHTNESS_DPS] = 1000
+    async def test_set_brightness_color(self):
+        self.dps[SWITCH_DPS] = True
+        self.dps[MODE_DPS] = "colour"
+        self.dps[HSV_DPS] = "000003e803e8"
         async with assert_device_properties_set(
             self.subject._device,
             {
-                SWITCH_DPS: True,
+                HSV_DPS: "000003e801f6",
+            },
+        ):
+            await self.subject.async_turn_on(brightness=128)
+
+    async def test_set_rgbw(self):
+        self.dps[BRIGHTNESS_DPS] = 1000
+        self.dps[SWITCH_DPS] = True
+        self.dps[MODE_DPS] = "colour"
+        async with assert_device_properties_set(
+            self.subject._device,
+            {
+                HSV_DPS: "000003e803e8",
+            },
+        ):
+            await self.subject.async_turn_on(
+                rgbw_color=(255, 0, 0, 255),
+            )
+
+    async def test_set_rgbw_from_white(self):
+        self.dps[BRIGHTNESS_DPS] = 1000
+        self.dps[SWITCH_DPS] = True
+        self.dps[MODE_DPS] = "white"
+        async with assert_device_properties_set(
+            self.subject._device,
+            {
                 MODE_DPS: "colour",
                 HSV_DPS: "000003e803e8",
             },
         ):
             await self.subject.async_turn_on(
-                color_mode=ColorMode.RGBW,
                 rgbw_color=(255, 0, 0, 255),
             )
 

@@ -1,48 +1,30 @@
-name: Madimack Elite V3 Pool Heatpump
+name: Madimack Elite V3 pool heatpump
 primary_entity:
   entity: climate
   dps:
     - id: 1
-      name: power
+      name: hvac_mode
       type: boolean
       mapping:
         - dps_val: false
           value: "off"
           icon: "mdi:hvac-off"
-          icon_priority: 1
-      hidden: true
-    - id: 2
-      name: hvac_mode
-      type: string
-      mapping:
-        - dps_val: auto
-          icon: "mdi:refresh-auto"
-          icon_priority: 1
-          constraint: power
+        - dps_val: true
+          constraint: mode
           conditions:
-            - dps_val: false
-              value_redirect: power
-            - dps_val: true
+            - dps_val: auto
+              icon: "mdi:refresh-auto"
               value: heat_cool
-        - dps_val: cold
-          icon: "mdi:snowflake"
-          icon_priority: 2
-          constraint: power
-          conditions:
-            - dps_val: false
-              value_redirect: power
-              value: "off"
-            - dps_val: true
+            - dps_val: cold
+              icon: "mdi:snowflake"
               value: cool
-        - dps_val: heating
-          icon: "mdi:hot-tub"
-          icon_priority: 3
-          constraint: power
-          conditions:
-            - dps_val: false
-              value_redirect: power
-            - dps_val: true
+            - dps_val: heating
+              icon: "mdi:hot-tub"
               value: heat
+    - id: 2
+      name: mode
+      type: string
+      hidden: true
     - id: 4
       name: temperature
       type: integer
@@ -102,7 +84,7 @@ primary_entity:
 secondary_entities:
   - entity: sensor
     category: diagnostic
-    name: Power Level
+    name: Power level
     class: power_factor
     dps:
       - id: 20
@@ -112,7 +94,7 @@ secondary_entities:
         readonly: true
   - entity: sensor
     category: diagnostic
-    name: Evaporator Coil Pipe Temperature
+    name: Evaporator coil pipe temperature
     class: temperature
     dps:
       - id: 23
@@ -129,7 +111,7 @@ secondary_entities:
             value: C
   - entity: sensor
     category: diagnostic
-    name: Exhaust Gas Temperature
+    name: Exhaust gas temperature
     class: temperature
     dps:
       - id: 24
@@ -146,7 +128,7 @@ secondary_entities:
             value: C
   - entity: sensor
     category: diagnostic
-    name: Outlet Water Temperature
+    name: Outlet water temperature
     class: temperature
     dps:
       - id: 25
@@ -163,7 +145,7 @@ secondary_entities:
             value: C
   - entity: sensor
     category: diagnostic
-    name: Ambient Temperature
+    name: Ambient temperature
     class: temperature
     dps:
       - id: 26
@@ -180,7 +162,7 @@ secondary_entities:
             value: C
   - entity: sensor
     category: diagnostic
-    name: Return Gas Temperature
+    name: Return gas temperature
     class: temperature
     dps:
       - id: 103
@@ -197,7 +179,7 @@ secondary_entities:
             value: C
   - entity: sensor
     category: diagnostic
-    name: Cooling Coil Pipe Temperature
+    name: Cooling coil pipe temperature
     class: temperature
     dps:
       - id: 104
@@ -214,7 +196,7 @@ secondary_entities:
             value: C
   - entity: sensor
     category: diagnostic
-    name: Cooling Plate Temperature
+    name: Cooling plate temperature
     class: temperature
     dps:
       - id: 105
@@ -231,7 +213,7 @@ secondary_entities:
             value: C
   - entity: sensor
     category: diagnostic
-    name: EEV Opening
+    name: EEV opening
     dps:
       - id: 106
         name: sensor

@@ -3,11 +3,9 @@ from homeassistant.components.climate.const import (
     HVACAction,
     HVACMode,
 )
+from homeassistant.components.number.const import NumberDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass
-from homeassistant.const import (
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
-)
+from homeassistant.const import UnitOfTemperature
 
 from ..const import MINCO_MH1823D_THERMOSTAT_PAYLOAD
 from ..helpers import assert_device_properties_set
@@ -71,7 +69,7 @@ class TestMincoMH1823DThermostat(
         self.setUpBasicSensor(
             EXTERNTEMP_DPS,
             self.entities.get("sensor_external_temperature"),
-            unit=TEMP_CELSIUS,
+            unit=UnitOfTemperature.CELSIUS,
             device_class=SensorDeviceClass.TEMPERATURE,
             state_class="measurement",
             testdata=(300, 30.0),
@@ -84,28 +82,29 @@ class TestMincoMH1823DThermostat(
                     "dps": CALIBINT_DPS,
                     "min": -9,
                     "max": 9,
-                    "unit": TEMP_CELSIUS,
+                    "unit": UnitOfTemperature.CELSIUS,
                 },
                 {
                     "name": "number_calibration_offset_external",
                     "dps": CALIBEXT_DPS,
                     "min": -9,
                     "max": 9,
-                    "unit": TEMP_CELSIUS,
+                    "unit": UnitOfTemperature.CELSIUS,
                 },
                 {
                     "name": "number_calibration_swing",
                     "dps": CALIBSWING_DPS,
                     "min": 1,
                     "max": 9,
-                    "unit": TEMP_CELSIUS,
+                    "unit": UnitOfTemperature.CELSIUS,
                 },
                 {
                     "name": "number_high_temperature_limit",
                     "dps": TEMPLIMIT_DPS,
+                    "device_class": NumberDeviceClass.TEMPERATURE,
                     "min": 5,
                     "max": 65,
-                    "unit": TEMP_CELSIUS,
+                    "unit": UnitOfTemperature.CELSIUS,
                 },
             ]
         )
@@ -173,9 +172,9 @@ class TestMincoMH1823DThermostat(
 
     def test_temperature_unit(self):
         self.dps[UNIT_DPS] = "c"
-        self.assertEqual(self.subject.temperature_unit, TEMP_CELSIUS)
+        self.assertEqual(self.subject.temperature_unit, UnitOfTemperature.CELSIUS)
         self.dps[UNIT_DPS] = "f"
-        self.assertEqual(self.subject.temperature_unit, TEMP_FAHRENHEIT)
+        self.assertEqual(self.subject.temperature_unit, UnitOfTemperature.FAHRENHEIT)
 
     def test_target_temperature_f(self):
         self.dps[TEMPF_DPS] = 70

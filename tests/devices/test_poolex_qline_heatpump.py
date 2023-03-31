@@ -3,6 +3,7 @@ from homeassistant.components.climate.const import (
     ClimateEntityFeature,
     HVACMode,
 )
+from homeassistant.const import UnitOfTemperature
 
 from ..const import POOLEX_QLINE_HEATPUMP_PAYLOAD
 from ..helpers import assert_device_properties_set
@@ -53,15 +54,15 @@ class TestPoolexSilverlineHeatpump(
         self.assertEqual(self.subject.icon, "mdi:hot-tub")
         self.dps[MODE_DPS] = "cold"
         self.assertEqual(self.subject.icon, "mdi:snowflake")
+        self.dps[MODE_DPS] = "mute"
+        self.assertEqual(self.subject.icon, "mdi:hot-tub")
         self.dps[ERROR_DPS] = 1
         self.assertEqual(self.subject.icon, "mdi:water-pump-off")
         self.dps[HVACMODE_DPS] = False
         self.assertEqual(self.subject.icon, "mdi:hvac-off")
 
-    def test_temperature_unit_returns_device_temperature_unit(self):
-        self.assertEqual(
-            self.subject.temperature_unit, self.subject._device.temperature_unit
-        )
+    def test_temperature_unit_returns_celsius(self):
+        self.assertEqual(self.subject.temperature_unit, UnitOfTemperature.CELSIUS)
 
     def test_current_temperature(self):
         self.dps[CURRENTTEMP_DPS] = 25
@@ -75,13 +76,16 @@ class TestPoolexSilverlineHeatpump(
         self.dps[MODE_DPS] = "cold"
         self.assertEqual(self.subject.hvac_mode, HVACMode.COOL)
 
+        self.dps[MODE_DPS] = "mute"
+        self.assertEqual(self.subject.hvac_mode, HVACMode.HEAT_COOL)
+
         self.dps[HVACMODE_DPS] = False
         self.assertEqual(self.subject.hvac_mode, HVACMode.OFF)
 
     def test_hvac_modes(self):
         self.assertCountEqual(
             self.subject.hvac_modes,
-            [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT],
+            [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT, HVACMode.HEAT_COOL],
         )
 
     async def test_hvac_mode_heat(self):
@@ -95,6 +99,12 @@ class TestPoolexSilverlineHeatpump(
             self.subject._device, {HVACMODE_DPS: True, MODE_DPS: "cold"}
         ):
             await self.subject.async_set_hvac_mode(HVACMode.COOL)
+
+    async def test_hvac_mode_mute(self):
+        async with assert_device_properties_set(
+            self.subject._device, {HVACMODE_DPS: True, MODE_DPS: "mute"}
+        ):
+            await self.subject.async_set_hvac_mode(HVACMode.HEAT_COOL)
 
     async def test_turn_off(self):
         async with assert_device_properties_set(

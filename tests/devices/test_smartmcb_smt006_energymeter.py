@@ -1,16 +1,16 @@
 """Tests for the SmartMCB SMT006 Energy Meter"""
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
+from homeassistant.components.button import ButtonDeviceClass
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     STATE_CLASS_TOTAL,
     STATE_CLASS_TOTAL_INCREASING,
 )
-from homeassistant.const import (
-    ENERGY_KILO_WATT_HOUR,
-)
+from homeassistant.const import UnitOfEnergy
 
 from ..const import SMARTMCB_SMT006_METER_PAYLOAD
 from ..mixins.binary_sensor import MultiBinarySensorTests
+from ..mixins.button import BasicButtonTests
 from ..mixins.sensor import MultiSensorTests
 from ..mixins.switch import MultiSwitchTests
 from .base_device_tests import TuyaDeviceTestCase
@@ -31,6 +31,7 @@ UNKNOWN106_DPS = "106"
 
 
 class TestSmartMcbSMT006EnergyMeter(
+    BasicButtonTests,
     MultiBinarySensorTests,
     MultiSensorTests,
     MultiSwitchTests,
@@ -44,6 +45,11 @@ class TestSmartMcbSMT006EnergyMeter(
             SMARTMCB_SMT006_METER_PAYLOAD,
         )
 
+        self.setUpBasicButton(
+            RESET_DPS,
+            self.entities.get("button_energy_reset"),
+            ButtonDeviceClass.RESTART,
+        )
         self.setUpMultiSwitch(
             [
                 {
@@ -66,16 +72,14 @@ class TestSmartMcbSMT006EnergyMeter(
                     "name": "sensor_energy",
                     "dps": TOTALENERGY_DPS,
                     "device_class": SensorDeviceClass.ENERGY,
-                    "unit": ENERGY_KILO_WATT_HOUR,
+                    "unit": UnitOfEnergy.KILO_WATT_HOUR,
                     "state_class": STATE_CLASS_TOTAL_INCREASING,
                     "testdata": (123456, 1234.56),
                 },
                 {
                     "name": "sensor_balance_energy",
                     "dps": BALANCE_DPS,
-                    "device_class": SensorDeviceClass.ENERGY,
-                    "unit": ENERGY_KILO_WATT_HOUR,
-                    "state_class": STATE_CLASS_TOTAL,
+                    "unit": UnitOfEnergy.KILO_WATT_HOUR,
                     "testdata": (123456, 1234.56),
                 },
             ],
@@ -183,7 +187,7 @@ class TestSmartMcbSMT006EnergyMeter(
                     "dps": ERROR_DPS,
                     "device_class": BinarySensorDeviceClass.PLUG,
                     "testdata": (0, 65536),
-                    "unit": ENERGY_KILO_WATT_HOUR,
+                    "unit": UnitOfEnergy.KILO_WATT_HOUR,
                 },
             ],
         )
@@ -206,6 +210,7 @@ class TestSmartMcbSMT006EnergyMeter(
                 "binary_sensor_surge",
                 "binary_sensor_unbalanced",
                 "binary_sensor_undervoltage",
+                "button_energy_reset",
                 "sensor_balance_energy",
                 "switch_energy_reset",
                 "switch_prepay",

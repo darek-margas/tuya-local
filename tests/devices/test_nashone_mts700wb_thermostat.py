@@ -1,16 +1,16 @@
+from homeassistant.components.button import ButtonDeviceClass
 from homeassistant.components.climate.const import (
     ClimateEntityFeature,
-    HVACAction,
     HVACMode,
 )
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import (
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
-    TIME_MINUTES,
+    UnitOfTime,
 )
 
 from ..const import NASHONE_MTS700WB_THERMOSTAT_PAYLOAD
 from ..helpers import assert_device_properties_set
+from ..mixins.button import BasicButtonTests
 from ..mixins.climate import TargetTemperatureTests
 from ..mixins.number import BasicNumberTests
 from ..mixins.select import BasicSelectTests
@@ -33,6 +33,7 @@ COUNTDOWN_DPS = "42"
 
 
 class TestNashoneMTS700WBThermostat(
+    BasicButtonTests,
     BasicNumberTests,
     BasicSelectTests,
     BasicSensorTests,
@@ -54,6 +55,11 @@ class TestNashoneMTS700WBThermostat(
             min=-20,
             max=105,
         )
+        self.setUpBasicButton(
+            RESET_DPS,
+            self.entities.get("button_factory_reset"),
+            device_class=ButtonDeviceClass.RESTART,
+        )
         self.setUpBasicNumber(
             CALIBOFFSET_DPS,
             self.entities.get("number_calibration_offset"),
@@ -71,8 +77,8 @@ class TestNashoneMTS700WBThermostat(
         self.setUpBasicSensor(
             COUNTDOWN_DPS,
             self.entities.get("sensor_timer"),
-            unit=TIME_MINUTES,
-            testdata=(600, 10.0),
+            unit=UnitOfTime.SECONDS,
+            device_class=SensorDeviceClass.DURATION,
         )
         self.setUpBasicSwitch(
             RESET_DPS,
@@ -80,6 +86,7 @@ class TestNashoneMTS700WBThermostat(
         )
         self.mark_secondary(
             [
+                "button_factory_reset",
                 "number_calibration_offset",
                 "select_timer",
                 "sensor_timer",
@@ -139,15 +146,19 @@ class TestNashoneMTS700WBThermostat(
         ):
             await self.subject.async_set_hvac_mode(HVACMode.OFF)
 
-    def test_hvac_action(self):
-        self.dps[HVACMODE_DPS] = "hot"
-        self.dps[HVACACTION_DPS] = "manual"
-        self.assertEqual(self.subject.hvac_action, HVACAction.HEATING)
-        self.dps[HVACMODE_DPS] = "cold"
-        self.assertEqual(self.subject.hvac_action, HVACAction.COOLING)
+    # def test_hvac_action(self):
+    #     self.dps[HVACMODE_DPS] = "hot"
+    #     self.dps[HVACACTION_DPS] = "manual"
+    #     self.assertEqual(self.subject.hvac_action, HVACAction.HEATING)
+    #     self.dps[HVACMODE_DPS] = "cold"
+    #     self.assertEqual(self.subject.hvac_action, HVACAction.COOLING)
 
     def test_extra_state_attributes(self):
-        self.assertEqual(self.subject.extra_state_attributes, {})
+        self.dps[HVACACTION_DPS] = "manual"
+        self.assertEqual(
+            self.subject.extra_state_attributes,
+            {"work_state": "manual"},
+        )
 
     def test_icons(self):
         self.assertEqual(self.basicNumber.icon, "mdi:arrow-collapse-up")

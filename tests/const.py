@@ -36,6 +36,14 @@ EUROM_WALLDESIGNHEAT2000_HEATER_PAYLOAD = {
     "7": False,
 }
 
+EUROM_SANIWALLHEAT2000_HEATER_PAYLOAD = {
+    "1": True,
+    "2": 21,
+    "3": 19,
+    "4": "off",
+    "7": False,
+}
+
 GECO_HEATER_PAYLOAD = {"1": True, "2": True, "3": 30, "4": 25, "5": 0, "6": 0}
 
 JJPRO_JPD01_PAYLOAD = {
@@ -609,7 +617,7 @@ SASWELL_C16_THERMOSTAT_PAYLOAD = {
     "10": True,
     "11": False,
     "12": "7",
-    "14": 0,
+    "14": "0",
     "15": 0,
     "17": 0,
     "21": False,
@@ -1031,6 +1039,7 @@ KYVOL_E30_VACUUM_PAYLOAD = {
     "12": False,
     "13": False,
     "14": "3",
+    "16": 0,
     "17": 0,
     "18": 0,
     "101": "2",
@@ -1448,4 +1457,105 @@ BECOOL_HEATPUMP_PAYLOAD = {
     "16": True,
     "17": False,
     "19": False,
+}
+
+ESSENTIALS_PURIFIER_PAYLOAD = {
+    "1": True,
+    "2": 12,
+    "3": "auto",
+    "5": 50,
+    "7": False,
+    "9": False,
+    "11": False,
+    "18": "cancel",
+    "19": 0,
+    "21": "good",
+    "101": "Standard",
+}
+
+AVATTO_BLINDS_PAYLOAD = {
+    "1": "close",
+    "2": 0,
+    "3": 0,
+    "5": False,
+    "7": "closing",
+    "8": "cancel",
+    "9": 0,
+    "11": 0,
+}
+
+AVATTO_CURTAIN_PAYLOAD = {
+    "1": "stop",
+    "101": True,
+}
+
+ORION_SIREN_PAYLOAD = {
+    "1": "normal",
+    "5": "middle",
+    "6": True,
+    "7": 10,
+    "15": 0,
+    "20": True,
+}
+
+INKBIRD_SOUSVIDE_PAYLOAD = {
+    "101": False,
+    "102": "stop",
+    "103": 0,
+    "104": 297,
+    "105": 0,
+    "106": 0,
+    "107": 3,
+    "108": True,
+    "109": 0,
+    "110": 0,
+}
+
+HYDROTHERM_DYNAMICX8_PAYLOAD = {
+    "1": True,
+    "2": 65,
+    "3": 60,
+    "4": "STANDARD",
+    "21": 0,
+}
+
+TREATLIFE_DS02F_PAYLOAD = {
+    "1": True,
+    "2": 0,
+    "3": "level_2",
+}
+
+MOTION_LIGHT_PAYLOAD = {
+    "101": "mode_auto",
+    "102": False,
+    "103": 0,
+    "104": 249,
+    "105": 374,
+    "106": False,
+}
+
+BLITZWOLF_BWSH2_PAYLOAD = {
+    "1": True,
+    "3": "grade1",
+    "6": "close",
+    "19": "cancel",
+}
+
+BCOM_CAMERA_PAYLOAD = {
+    "101": True,
+    "103": False,
+    "104": False,
+    "106": "1",
+    "108": "0",
+    "109": "64GB",
+    "110": 1,
+    "111": False,
+    "115": "",
+    "117": 0,
+    "136": "",
+    "150": True,
+    "151": "1",
+    "162": False,
+    "231": "",
+    "232": False,
 }

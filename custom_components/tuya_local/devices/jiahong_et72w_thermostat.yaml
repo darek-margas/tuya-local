@@ -1,14 +1,25 @@
-name: Jiahong ET-72W Thermostat
+name: Jiahong ET-72W thermostat
 primary_entity:
   entity: climate
   dps:
     - id: 101
       type: boolean
-      name: power
+      name: hvac_mode
       mapping:
         - dps_val: false
           value: "off"
-      hidden: true
+        - dps_val: true
+          constraint: mode
+          conditions:
+            - dps_val: "Smart"
+              icon: "mdi:calendar-sync"
+              value: auto
+            - dps_val: "Manual"
+              icon: "mdi:fire"
+              value: heat
+            - dps_val: "Anti_frozen"
+              icon: "mdi:snowflake"
+              value: cool
     - id: 102
       type: integer
       name: temperature
@@ -27,33 +38,8 @@ primary_entity:
                 max: 750
     - id: 103
       type: string
-      name: hvac_mode
-      mapping:
-        - dps_val: "Smart"
-          icon: "mdi:calendar-sync"
-          constraint: power
-          conditions:
-            - dps_val: true
-              value: auto
-            - dps_val: false
-              value_redirect: power
-        - dps_val: "Manual"
-          icon: "mdi:fire"
-          constraint: power
-          conditions:
-            - dps_val: true
-              value: heat
-            - dps_val: false
-              value_redirect: power
-              value: "off"
-        - dps_val: "Anti_frozen"
-          icon: "mdi:snowflake"
-          constraint: power
-          conditions:
-            - dps_val: true
-              value: cool
-            - dps_val: false
-              value_redirect: power
+      name: mode
+      hidden: true
     - id: 105
       type: integer
       name: current_temperature
@@ -91,20 +77,18 @@ primary_entity:
       readonly: true
       mapping:
         - dps_val: true
-          constraint: power
+          constraint: hvac_mode
           conditions:
             - dps_val: true
               value: heating
             - dps_val: false
-              value_redirect: power
               value: "off"
         - dps_val: false
-          constraint: power
+          constraint: hvac_mode
           conditions:
             - dps_val: true
               value: idle
             - dps_val: false
-              value_redirect: power
               value: "off"
     - id: 104
       type: integer
@@ -124,7 +108,7 @@ primary_entity:
       readonly: true
 secondary_entities:
   - entity: lock
-    name: Screen Lock
+    name: Screen lock
     category: config
     dps:
       - id: 108
@@ -136,7 +120,7 @@ secondary_entities:
           - dps_val: false
             icon: "mdi:hand-back-right"
   - entity: sensor
-    name: Room Temperature
+    name: Room temperature
     class: temperature
     readonly: true
     icon: "mdi:home-thermometer"
@@ -156,7 +140,7 @@ secondary_entities:
           - dps_val: true
             value: F
   - entity: sensor
-    name: Floor Temperature
+    name: Floor temperature
     class: temperature
     readonly: true
     icon: "mdi:thermometer-lines"
@@ -177,14 +161,11 @@ secondary_entities:
             value: F
   - entity: sensor
     name: Energy
-    class: energy
-    readonly: true
     dps:
       - id: 117
         type: integer
         name: sensor
         unit: kWh
-        class: total_increasing
         mapping:
           - scale: 10
       - id: 116
@@ -193,7 +174,7 @@ secondary_entities:
         readonly: true
   - entity: select
     category: config
-    name: Temperature Unit
+    name: Temperature unit
     dps:
       - id: 107
         name: option
@@ -207,7 +188,8 @@ secondary_entities:
             icon: "mdi:temperature-fahrenheit"
   - entity: number
     category: config
-    name: Room Temperature Limit
+    class: temperature
+    name: Room temperature limit
     icon: "mdi:thermometer-chevron-down"
     dps:
       - id: 121
@@ -236,7 +218,7 @@ secondary_entities:
             value: F
   - entity: select
     category: config
-    name: Temperature Sensor
+    name: Temperature sensor
     icon: "mdi:thermometer-check"
     dps:
       - id: 111
@@ -254,7 +236,7 @@ secondary_entities:
             icon: "mdi:thermometer"
   - entity: select
     category: config
-    name: Auto Schedule
+    name: Auto schedule
     icon: "mdi:calendar-sync"
     dps:
       - id: 110

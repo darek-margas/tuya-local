@@ -1,4 +1,4 @@
-name: Lefant M213 Vacuum
+name: Lefant M213 vacuum
 primary_entity:
   entity: vacuum
   dps:
@@ -27,6 +27,7 @@ primary_entity:
     - id: 4
       type: string
       name: direction_control
+      optional: true
       mapping:
         - dps_val: forward
           value: forward
@@ -65,6 +66,7 @@ primary_entity:
     - id: 13
       type: boolean
       name: locate
+      optional: true
     - id: 15
       type: string
       name: clean_record
@@ -88,6 +90,16 @@ primary_entity:
           value: land_check
         - dps_val: 64
           value: collision
+        - dps_val: 512
+          value: low_battery
+        - dps_val: 1024
+          value: stuck
+        - dps_val: 262144
+          value: switched_off
+    - id: 19
+      type: string
+      name: map_parameter
+      optional: true
     - id: 101
       type: string
       name: fan_speed
@@ -100,16 +112,24 @@ primary_entity:
           value: High
     - id: 102
       type: integer
-      name: unknown_102
+      name: chassis_temperature
     - id: 103
       type: integer
       name: heading
     - id: 104
       type: integer
-      name: unknown_104
+      name: iic_error_count
+    - id: 105
+      type: string
+      name: wheel_status
+      optional: true
     - id: 106
       type: string
       name: dock_info
+      optional: true
+    - id: 107
+      type: string
+      name: robot_status
       optional: true
     - id: 108
       type: string
@@ -117,7 +137,7 @@ primary_entity:
       optional: true
 secondary_entities:
   - entity: sensor
-    name: Clean Area
+    name: Clean area
     category: diagnostic
     icon: "mdi:floor-plan"
     dps:
@@ -126,8 +146,9 @@ secondary_entities:
         name: sensor
         unit: m2
   - entity: sensor
-    name: Clean Time
+    name: Clean time
     category: diagnostic
+    class: duration
     icon: "mdi:clock-outline"
     dps:
       - id: 17

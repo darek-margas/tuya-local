@@ -5,7 +5,7 @@ from homeassistant.components.climate.const import (
     HVACMode,
 )
 from homeassistant.components.sensor import SensorDeviceClass
-from homeassistant.const import TEMP_CELSIUS
+from homeassistant.const import UnitOfTemperature
 
 from ..const import TH213V2_THERMOSTAT_PAYLOAD
 from ..helpers import assert_device_properties_set
@@ -55,7 +55,7 @@ class TestAwowTH213v2Thermostat(
         self.setUpBasicSensor(
             EXTERNTEMP_DPS,
             self.entities.get("sensor_external_temperature"),
-            unit=TEMP_CELSIUS,
+            unit=UnitOfTemperature.CELSIUS,
             device_class=SensorDeviceClass.TEMPERATURE,
             state_class="measurement",
         )
@@ -81,14 +81,14 @@ class TestAwowTH213v2Thermostat(
                     "dps": CALIBRATE_DPS,
                     "min": -9,
                     "max": 9,
-                    "unit": TEMP_CELSIUS,
+                    "unit": UnitOfTemperature.CELSIUS,
                 },
                 {
                     "name": "number_calibration_swing",
                     "dps": CALIBSWING_DPS,
                     "min": 1,
                     "max": 9,
-                    "unit": TEMP_CELSIUS,
+                    "unit": UnitOfTemperature.CELSIUS,
                 },
             ]
         )
@@ -124,10 +124,8 @@ class TestAwowTH213v2Thermostat(
         self.dps[LOCK_DPS] = False
         self.assertEqual(self.basicLock.icon, "mdi:hand-back-right")
 
-    def test_temperature_unit_returns_device_temperature_unit(self):
-        self.assertEqual(
-            self.subject.temperature_unit, self.subject._device.temperature_unit
-        )
+    def test_temperature_unit_returns_celsius(self):
+        self.assertEqual(self.subject.temperature_unit, UnitOfTemperature.CELSIUS)
 
     async def test_legacy_set_temperature_with_preset_mode(self):
         async with assert_device_properties_set(self.subject._device, {PRESET_DPS: 2}):

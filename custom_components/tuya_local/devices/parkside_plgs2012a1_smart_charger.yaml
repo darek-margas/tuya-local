@@ -1,4 +1,4 @@
-name: Parkside PLGS2012A1 Charger
+name: Parkside PLGS2012A1 charger
 products:
   - id: h6pglenun37dzsgo
 primary_entity:
@@ -13,9 +13,10 @@ primary_entity:
       name: unknown_11
 secondary_entities:
   - entity: number
-    name: Charge Current
+    name: Charge current
     icon: "mdi:current-dc"
     category: config
+    class: current
     dps:
       - id: 3
         type: integer
@@ -27,9 +28,10 @@ secondary_entities:
           - step: 100
         unit: mA
   - entity: number
-    name: Charge Voltage
+    name: Charge voltage
     icon: "mdi:battery-charging"
     category: config
+    class: voltage
     dps:
       - id: 4
         type: integer
@@ -54,7 +56,7 @@ secondary_entities:
           - dps_val: false
             icon: "mdi:battery"
   - entity: switch
-    name: Temperature Limiter
+    name: Temperature limiter
     category: config
     icon: "mdi:thermometer-alert"
     dps:
@@ -70,7 +72,7 @@ secondary_entities:
         name: sensor
         unit: "%"
   - entity: sensor
-    name: Current Temperature
+    name: Current temperature
     class: temperature
     category: diagnostic
     dps:
@@ -80,7 +82,7 @@ secondary_entities:
         unit: C
         class: measurement
   - entity: sensor
-    name: Max Temperature Count
+    name: Max temperature count
     icon: "mdi:thermometer-plus"
     category: diagnostic
     dps:
@@ -96,7 +98,7 @@ secondary_entities:
         type: string
         name: sensor
   - entity: select
-    name: Charge Type
+    name: Charge type
     icon: "mdi:battery-unknown"
     category: config
     dps:
@@ -113,7 +115,7 @@ secondary_entities:
           - dps_val: individual
             value: Expert
   - entity: sensor
-    name: Max Current
+    name: Max current
     class: current
     category: diagnostic
     dps:
@@ -122,7 +124,8 @@ secondary_entities:
         name: sensor
         unit: mA
   - entity: sensor
-    name: Time Remaining
+    name: Time remaining
+    class: duration
     icon: "mdi:battery-clock"
     dps:
       - id: 102
@@ -130,7 +133,7 @@ secondary_entities:
         name: sensor
         unit: min
   - entity: binary_sensor
-    name: Almost Charged
+    name: Almost charged
     icon: "mdi:battery-charging-90"
     category: diagnostic
     dps:
@@ -138,7 +141,7 @@ secondary_entities:
         type: boolean
         name: sensor
   - entity: binary_sensor
-    name: Fully Charged
+    name: Fully charged
     icon: "mdi:battery-charging-100"
     category: diagnostic
     dps:

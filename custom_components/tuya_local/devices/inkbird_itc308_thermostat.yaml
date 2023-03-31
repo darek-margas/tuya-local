@@ -1,4 +1,4 @@
-name: Inkbird ITC-308 Thermostat
+name: Inkbird ITC-308 thermostat
 primary_entity:
   entity: climate
   dps:
@@ -62,6 +62,10 @@ primary_entity:
       type: string
       name: hvac_action
       mapping:
+        - dps_val: "0"
+          icon: "mdi-thermometer-off"
+          icon-priority: 5
+          value: idle
         - dps_val: "1"
           icon: "mdi:snowflake"
           icon_priority: 5
@@ -83,7 +87,7 @@ primary_entity:
 secondary_entities:
   - entity: number
     category: config
-    name: Calibration Offset
+    name: Calibration offset
     icon: "mdi:arrow-collapse-up"
     dps:
       - id: 102
@@ -101,7 +105,7 @@ secondary_entities:
                   min: -150
                   max: 150
   - entity: number
-    name: Compressor Delay
+    name: Compressor delay
     icon: "mdi:clock"
     category: config
     dps:
@@ -113,8 +117,9 @@ secondary_entities:
           min: 0
           max: 10
   - entity: number
-    name: High Temperature Limit
+    name: High temperature limit
     category: config
+    class: temperature
     icon: "mdi:thermometer-alert"
     dps:
       - id: 109
@@ -136,9 +141,10 @@ secondary_entities:
         type: string
         hidden: true
   - entity: number
-    name: Low Temperature Limit
+    name: Low temperature limit
     icon: "mdi:snowflake-alert"
     category: config
+    class: temperature
     dps:
       - id: 110
         name: value
@@ -160,7 +166,7 @@ secondary_entities:
         hidden: true
   - entity: select
     category: config
-    name: Temperature Unit
+    name: Temperature unit
     icon: "mdi:temperature-celsius"
     dps:
       - id: 101
@@ -174,7 +180,7 @@ secondary_entities:
   - entity: binary_sensor
     class: heat
     category: diagnostic
-    name: High Temperature
+    name: High temperature
     dps:
       - id: 111
         type: boolean
@@ -182,7 +188,7 @@ secondary_entities:
   - entity: binary_sensor
     class: cold
     category: diagnostic
-    name: Low Temperature
+    name: Low temperature
     dps:
       - id: 112
         type: boolean
@@ -202,7 +208,7 @@ secondary_entities:
   - entity: binary_sensor
     class: problem
     category: diagnostic
-    name: Sensor Fault
+    name: Sensor fault
     icon: "mdi:thermometer-alert"
     dps:
       - id: 113
@@ -210,7 +216,7 @@ secondary_entities:
         name: sensor
   - entity: number
     category: config
-    name: Heating Hysteresis
+    name: Heating hysteresis
     icon: "mdi: thermometer-chevron-up"
     dps:
       - id: 117
@@ -233,7 +239,7 @@ secondary_entities:
         hidden: true            
   - entity: number
     category: config
-    name: Cooling Hysteresis
+    name: Cooling hysteresis
     icon: "mdi:thermometer-chevron-down"
     dps:
       - id: 118

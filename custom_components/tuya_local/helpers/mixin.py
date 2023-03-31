@@ -5,8 +5,7 @@ import logging
 from homeassistant.const import (
     AREA_SQUARE_METERS,
     CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
+    UnitOfTemperature,
 )
 from homeassistant.helpers.entity import EntityCategory
 
@@ -29,7 +28,7 @@ class TuyaLocalEntity:
 
     @property
     def should_poll(self):
-        return True
+        return False
 
     @property
     def available(self):
@@ -38,7 +37,11 @@ class TuyaLocalEntity:
     @property
     def name(self):
         """Return the name for the UI."""
-        return self._config.name(self._device.name)
+        return self._config.name
+
+    @property
+    def has_entity_name(self):
+        return True
 
     @property
     def unique_id(self):
@@ -81,10 +84,16 @@ class TuyaLocalEntity:
     async def async_update(self):
         await self._device.async_refresh()
 
+    async def async_added_to_hass(self):
+        self._device.register_entity(self)
+
+    async def async_will_remove_from_hass(self):
+        await self._device.async_unregister_entity(self)
+
 
 UNIT_ASCII_MAP = {
-    "C": TEMP_CELSIUS,
-    "F": TEMP_FAHRENHEIT,
+    "C": UnitOfTemperature.CELSIUS,
+    "F": UnitOfTemperature.FAHRENHEIT,
     "ugm3": CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     "m2": AREA_SQUARE_METERS,
 }

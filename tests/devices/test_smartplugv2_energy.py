@@ -3,11 +3,11 @@ from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.components.switch import SwitchDeviceClass
 from homeassistant.const import (
-    ELECTRIC_CURRENT_MILLIAMPERE,
-    ELECTRIC_POTENTIAL_VOLT,
-    ENERGY_WATT_HOUR,
-    POWER_WATT,
-    TIME_MINUTES,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
+    UnitOfTime,
+    UnitOfEnergy,
+    UnitOfPower,
 )
 
 from ..const import SMARTSWITCH_ENERGY_PAYLOAD
@@ -71,7 +71,7 @@ class TestSwitchV2Energy(
             TIMER_DPS,
             self.entities.get("number_timer"),
             max=1440.0,
-            unit=TIME_MINUTES,
+            unit=UnitOfTime.MINUTES,
             scale=60,
         )
         self.setUpBasicSelect(
@@ -88,14 +88,12 @@ class TestSwitchV2Energy(
                 {
                     "name": "sensor_energy",
                     "dps": ENERGY_DPS,
-                    "unit": ENERGY_WATT_HOUR,
-                    "device_class": SensorDeviceClass.ENERGY,
-                    "state_class": "total_increasing",
+                    "unit": UnitOfEnergy.WATT_HOUR,
                 },
                 {
                     "name": "sensor_voltage",
                     "dps": VOLTAGE_DPS,
-                    "unit": ELECTRIC_POTENTIAL_VOLT,
+                    "unit": UnitOfElectricPotential.VOLT,
                     "device_class": SensorDeviceClass.VOLTAGE,
                     "state_class": "measurement",
                     "testdata": (2300, 230.0),
@@ -103,14 +101,14 @@ class TestSwitchV2Energy(
                 {
                     "name": "sensor_current",
                     "dps": CURRENT_DPS,
-                    "unit": ELECTRIC_CURRENT_MILLIAMPERE,
+                    "unit": UnitOfElectricCurrent.MILLIAMPERE,
                     "device_class": SensorDeviceClass.CURRENT,
                     "state_class": "measurement",
                 },
                 {
                     "name": "sensor_power",
                     "dps": POWER_DPS,
-                    "unit": POWER_WATT,
+                    "unit": UnitOfPower.WATT,
                     "device_class": SensorDeviceClass.POWER,
                     "state_class": "measurement",
                     "testdata": (1234, 123.4),
@@ -132,10 +130,6 @@ class TestSwitchV2Energy(
 
     def test_multi_switch_state_attributes(self):
         self.dps[TEST_DPS] = 21
-        self.dps[CALIBV_DPS] = 22
-        self.dps[CALIBI_DPS] = 23
-        self.dps[CALIBP_DPS] = 24
-        self.dps[CALIBE_DPS] = 25
         self.dps[ERROR_DPS] = 26
         self.dps[CYCLE_DPS] = "1A2B"
         self.dps[RANDOM_DPS] = "3C4D"
@@ -144,12 +138,31 @@ class TestSwitchV2Energy(
             self.multiSwitch["switch"].extra_state_attributes,
             {
                 "test_bit": 21,
-                "voltage_calibration": 22,
-                "current_calibration": 23,
-                "power_calibration": 24,
-                "energy_calibration": 25,
                 "fault_code": 26,
                 "cycle_timer": "1A2B",
                 "random_timer": "3C4D",
             },
+        )
+
+    def test_multi_sensor_extra_state_attributes(self):
+        self.dps[CALIBV_DPS] = 22
+        self.dps[CALIBI_DPS] = 23
+        self.dps[CALIBP_DPS] = 24
+        self.dps[CALIBE_DPS] = 25
+
+        self.assertDictEqual(
+            self.multiSensor["sensor_current"].extra_state_attributes,
+            {"calibration": 23},
+        )
+        self.assertDictEqual(
+            self.multiSensor["sensor_energy"].extra_state_attributes,
+            {"calibration": 25},
+        )
+        self.assertDictEqual(
+            self.multiSensor["sensor_power"].extra_state_attributes,
+            {"calibration": 24},
+        )
+        self.assertDictEqual(
+            self.multiSensor["sensor_voltage"].extra_state_attributes,
+            {"calibration": 22},
         )

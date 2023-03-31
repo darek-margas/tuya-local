@@ -1,13 +1,16 @@
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
+from homeassistant.components.button import ButtonDeviceClass
 from homeassistant.components.fan import FanEntityFeature
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import (
     PERCENTAGE,
-    TIME_MINUTES,
+    UnitOfTime,
 )
 
 from ..const import VORK_VK6067_PURIFIER_PAYLOAD
 from ..helpers import assert_device_properties_set
 from ..mixins.binary_sensor import BasicBinarySensorTests
+from ..mixins.button import BasicButtonTests
 from ..mixins.light import BasicLightTests
 from ..mixins.select import BasicSelectTests
 from ..mixins.sensor import MultiSensorTests
@@ -27,6 +30,7 @@ ERROR_DPS = "22"
 
 class TestVorkVK6267AWPurifier(
     BasicBinarySensorTests,
+    BasicButtonTests,
     BasicLightTests,
     BasicSelectTests,
     BasicSwitchTests,
@@ -57,17 +61,25 @@ class TestVorkVK6267AWPurifier(
             },
         )
         self.setUpBasicSwitch(RESET_DPS, self.entities.get("switch_filter_reset"))
+        self.setUpBasicButton(
+            RESET_DPS,
+            self.entities.get("button_filter_reset"),
+            device_class=ButtonDeviceClass.RESTART,
+        )
         self.setUpMultiSensors(
             [
                 {
                     "dps": AQI_DPS,
                     "name": "sensor_air_quality",
+                    "device_class": SensorDeviceClass.ENUM,
                     "testdata": ("great", "Great"),
+                    "options": ["Great", "Good", "Severe", "Medium"],
                 },
                 {
                     "dps": COUNTDOWN_DPS,
                     "name": "sensor_timer",
-                    "unit": TIME_MINUTES,
+                    "unit": UnitOfTime.MINUTES,
+                    "device_class": SensorDeviceClass.DURATION,
                 },
                 {
                     "dps": FILTER_DPS,
@@ -79,6 +91,7 @@ class TestVorkVK6267AWPurifier(
         self.mark_secondary(
             [
                 "binary_sensor_error",
+                "button_filter_reset",
                 "light",
                 "select_timer",
                 "sensor_air_quality",

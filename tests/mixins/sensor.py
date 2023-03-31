@@ -48,6 +48,7 @@ class MultiSensorTests:
         self.multiSensorDevClass = {}
         self.multiSensorStateClass = {}
         self.multiSensorTestData = {}
+        self.multiSensorOptions = {}
         for s in sensors:
             name = s.get("name")
             subject = self.entities.get(name)
@@ -65,32 +66,57 @@ class MultiSensorTests:
                 self.multiSensorDevClass[name] = None
 
             self.multiSensorTestData[name] = s.get("testdata", (30, 30))
+            self.multiSensorOptions[name] = s.get("options")
 
     def test_multi_sensor_units(self):
         for key, subject in self.multiSensor.items():
-            with self.subTest(key):
-                self.assertEqual(
-                    subject.native_unit_of_measurement, self.multiSensorUnit[key]
-                )
+            self.assertEqual(
+                subject.native_unit_of_measurement,
+                self.multiSensorUnit[key],
+                f"{key} unit mismatch",
+            )
 
     def test_multi_sensor_device_class(self):
         for key, subject in self.multiSensor.items():
-            with self.subTest(key):
-                self.assertEqual(subject.device_class, self.multiSensorDevClass[key])
+            self.assertEqual(
+                subject.device_class,
+                self.multiSensorDevClass[key],
+                f"{key} device_class mismatch",
+            )
 
     def test_multi_sensor_state_class(self):
         for key, subject in self.multiSensor.items():
-            with self.subTest(key):
-                self.assertEqual(subject.state_class, self.multiSensorStateClass[key])
+            self.assertEqual(
+                subject.state_class,
+                self.multiSensorStateClass[key],
+                f"{key} state_class mismatch",
+            )
 
     def test_multi_sensor_value(self):
         for key, subject in self.multiSensor.items():
-            with self.subTest(key):
-                dpsval, val = self.multiSensorTestData[key]
-                self.dps[self.multiSensorDps[key]] = dpsval
-                self.assertEqual(subject.native_value, val)
+            dpsval, val = self.multiSensorTestData[key]
+            self.dps[self.multiSensorDps[key]] = dpsval
+            self.assertEqual(
+                subject.native_value,
+                val,
+                f"{key} value mapping not as expected",
+            )
 
     def test_multi_sensor_extra_state_attributes(self):
         for key, subject in self.multiSensor.items():
-            with self.subTest(key):
-                self.assertEqual(subject.extra_state_attributes, {})
+            self.assertEqual(
+                subject.extra_state_attributes,
+                {},
+                f"{key} extra_state_attributes mismatch",
+            )
+
+    def test_multi_sensor_options(self):
+        for key, subject in self.multiSensor.items():
+            if self.multiSensorOptions[key]:
+                self.assertCountEqual(
+                    subject.options,
+                    self.multiSensorOptions[key],
+                    f"{key} options not as expected",
+                )
+            else:
+                self.assertIsNone(subject.options)

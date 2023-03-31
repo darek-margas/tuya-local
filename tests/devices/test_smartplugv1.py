@@ -2,10 +2,10 @@
 from homeassistant.components.switch import SwitchDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import (
-    ELECTRIC_CURRENT_MILLIAMPERE,
-    ELECTRIC_POTENTIAL_VOLT,
-    POWER_WATT,
-    TIME_MINUTES,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
+    UnitOfTime,
+    UnitOfPower,
 )
 
 from ..const import KOGAN_SOCKET_PAYLOAD
@@ -34,7 +34,7 @@ class TestKoganSwitch(
             TIMER_DPS,
             self.entities.get("number_timer"),
             max=1440.0,
-            unit=TIME_MINUTES,
+            unit=UnitOfTime.MINUTES,
             scale=60,
         )
         self.setUpMultiSensors(
@@ -42,7 +42,7 @@ class TestKoganSwitch(
                 {
                     "name": "sensor_voltage",
                     "dps": VOLTAGE_DPS,
-                    "unit": ELECTRIC_POTENTIAL_VOLT,
+                    "unit": UnitOfElectricPotential.VOLT,
                     "device_class": SensorDeviceClass.VOLTAGE,
                     "state_class": "measurement",
                     "testdata": (2300, 230.0),
@@ -50,14 +50,14 @@ class TestKoganSwitch(
                 {
                     "name": "sensor_current",
                     "dps": CURRENT_DPS,
-                    "unit": ELECTRIC_CURRENT_MILLIAMPERE,
+                    "unit": UnitOfElectricCurrent.MILLIAMPERE,
                     "device_class": SensorDeviceClass.CURRENT,
                     "state_class": "measurement",
                 },
                 {
                     "name": "sensor_power",
                     "dps": POWER_DPS,
-                    "unit": POWER_WATT,
+                    "unit": UnitOfPower.WATT,
                     "device_class": SensorDeviceClass.POWER,
                     "state_class": "measurement",
                     "testdata": (1234, 123.4),
@@ -75,22 +75,3 @@ class TestKoganSwitch(
 
     def test_device_class_is_outlet(self):
         self.assertEqual(self.subject.device_class, SwitchDeviceClass.OUTLET)
-
-    def test_current_power_w(self):
-        self.dps[POWER_DPS] = 1234
-        self.assertEqual(self.subject.current_power_w, 123.4)
-
-    def test_extra_state_attributes_set(self):
-        self.dps[TIMER_DPS] = 1
-        self.dps[VOLTAGE_DPS] = 2350
-        self.dps[CURRENT_DPS] = 1234
-        self.dps[POWER_DPS] = 5678
-        self.assertDictEqual(
-            self.subject.extra_state_attributes,
-            {
-                "timer": 1,
-                "current_a": 1.234,
-                "voltage_v": 235.0,
-                "current_power_w": 567.8,
-            },
-        )

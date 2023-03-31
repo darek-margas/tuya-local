@@ -1,11 +1,12 @@
 """Tests for Parkside PLGS 2012 A1 Smart Charger"""
 from homeassistant.const import (
-    ELECTRIC_CURRENT_MILLIAMPERE,
-    ELECTRIC_POTENTIAL_VOLT,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
     PERCENTAGE,
-    TEMP_CELSIUS,
-    TIME_MINUTES,
+    UnitOfTime,
+    UnitOfTemperature,
 )
+from homeassistant.components.number.const import NumberDeviceClass
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     STATE_CLASS_MEASUREMENT,
@@ -66,17 +67,19 @@ class TestParksidePLGS2012A1Charger(
                 {
                     "name": "number_charge_current",
                     "dps": CURRENT_DPS,
+                    "device_class": NumberDeviceClass.CURRENT,
                     "max": 30000,
                     "step": 100,
-                    "unit": ELECTRIC_CURRENT_MILLIAMPERE,
+                    "unit": UnitOfElectricCurrent.MILLIAMPERE,
                 },
                 {
                     "name": "number_charge_voltage",
                     "dps": VOLTAGE_DPS,
+                    "device_class": NumberDeviceClass.VOLTAGE,
                     "max": 25.0,
                     "scale": 1000,
                     "step": 0.1,
-                    "unit": ELECTRIC_POTENTIAL_VOLT,
+                    "unit": UnitOfElectricPotential.VOLT,
                 },
             ],
         )
@@ -101,19 +104,20 @@ class TestParksidePLGS2012A1Charger(
                 {
                     "name": "sensor_time_remaining",
                     "dps": REMAIN_DPS,
-                    "unit": TIME_MINUTES,
+                    "unit": UnitOfTime.MINUTES,
+                    "device_class": SensorDeviceClass.DURATION,
                 },
                 {
                     "name": "sensor_current_temperature",
                     "dps": TEMPERATURE_DPS,
-                    "unit": TEMP_CELSIUS,
+                    "unit": UnitOfTemperature.CELSIUS,
                     "device_class": SensorDeviceClass.TEMPERATURE,
                     "state_class": STATE_CLASS_MEASUREMENT,
                 },
                 {
                     "name": "sensor_max_current",
                     "dps": MAXCURRENT_DPS,
-                    "unit": ELECTRIC_CURRENT_MILLIAMPERE,
+                    "unit": UnitOfElectricCurrent.MILLIAMPERE,
                     "device_class": SensorDeviceClass.CURRENT,
                 },
                 {

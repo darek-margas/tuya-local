@@ -1,22 +1,27 @@
 """Tests for the light entity."""
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+import pytest
 from unittest.mock import AsyncMock, Mock
 
 from custom_components.tuya_local.const import (
-    CONF_CLIMATE,
     CONF_DEVICE_ID,
+    CONF_PROTOCOL_VERSION,
     CONF_TYPE,
     DOMAIN,
 )
-from custom_components.tuya_local.generic.climate import TuyaLocalClimate
-from custom_components.tuya_local.climate import async_setup_entry
+from custom_components.tuya_local.climate import async_setup_entry, TuyaLocalClimate
 
 
+@pytest.mark.asyncio
 async def test_init_entry(hass):
     """Test the initialisation."""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data={CONF_TYPE: "heater", CONF_DEVICE_ID: "dummy", CONF_CLIMATE: True},
+        data={
+            CONF_TYPE: "heater",
+            CONF_DEVICE_ID: "dummy",
+            CONF_PROTOCOL_VERSION: "auto",
+        },
     )
     # although async, the async_add_entities function passed to
     # async_setup_entry is called truly asynchronously. If we use
@@ -29,7 +34,7 @@ async def test_init_entry(hass):
     hass.data[DOMAIN]["dummy"]["device"] = m_device
 
     await async_setup_entry(hass, entry, m_add_entities)
-    assert type(hass.data[DOMAIN]["dummy"][CONF_CLIMATE]) == TuyaLocalClimate
+    assert type(hass.data[DOMAIN]["dummy"]["climate"]) == TuyaLocalClimate
     m_add_entities.assert_called_once()
 
 
@@ -41,7 +46,6 @@ async def test_init_entry(hass):
 #         data={
 #             CONF_TYPE: "goldair_dehumidifier",
 #             CONF_DEVICE_ID: "dummy",
-#             "climate_dehumidifier_as_climate": True,
 #         },
 #     )
 #     # although async, the async_add_entities function passed to
@@ -62,11 +66,16 @@ async def test_init_entry(hass):
 #     m_add_entities.assert_called_once()
 
 
+@pytest.mark.asyncio
 async def test_init_entry_fails_if_device_has_no_climate(hass):
     """Test initialisation when device has no matching entity"""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data={CONF_TYPE: "kogan_switch", CONF_DEVICE_ID: "dummy", CONF_CLIMATE: True},
+        data={
+            CONF_TYPE: "smartplugv1",
+            CONF_DEVICE_ID: "dummy",
+            CONF_PROTOCOL_VERSION: "auto",
+        },
     )
     # although async, the async_add_entities function passed to
     # async_setup_entry is called truly asynchronously. If we use
@@ -85,11 +94,16 @@ async def test_init_entry_fails_if_device_has_no_climate(hass):
     m_add_entities.assert_not_called()
 
 
+@pytest.mark.asyncio
 async def test_init_entry_fails_if_config_is_missing(hass):
     """Test initialisation when device has no matching entity"""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data={CONF_TYPE: "non_existing", CONF_DEVICE_ID: "dummy", CONF_CLIMATE: True},
+        data={
+            CONF_TYPE: "non_existing",
+            CONF_DEVICE_ID: "dummy",
+            CONF_PROTOCOL_VERSION: "auto",
+        },
     )
     # although async, the async_add_entities function passed to
     # async_setup_entry is called truly asynchronously. If we use

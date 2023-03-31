@@ -3,7 +3,8 @@ from homeassistant.components.climate.const import (
     ClimateEntityFeature,
     HVACMode,
 )
-from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT
+from homeassistant.components.number.const import NumberDeviceClass
+from homeassistant.const import PRECISION_TENTHS, UnitOfTemperature
 
 from ..const import BEOK_TR9B_PAYLOAD
 from ..mixins.climate import TargetTemperatureTests
@@ -102,20 +103,22 @@ class TestBeokTR9BThermostat(
                 {
                     "dps": MINTEMP_DPS,
                     "name": "number_low_temperature_limit",
+                    "device_class": NumberDeviceClass.TEMPERATURE,
                     "min": 5.0,
                     "max": 1000.0,
                     "step": 1.0,
                     "scale": 10,
-                    "unit": TEMP_CELSIUS,
+                    "unit": UnitOfTemperature.CELSIUS,
                 },
                 {
                     "dps": MAXTEMP_DPS,
                     "name": "number_high_temperature_limit",
+                    "device_class": NumberDeviceClass.TEMPERATURE,
                     "min": 5.0,
                     "max": 1000.0,
                     "step": 1.0,
                     "scale": 10,
-                    "unit": TEMP_CELSIUS,
+                    "unit": UnitOfTemperature.CELSIUS,
                 },
             ],
         )
@@ -142,16 +145,19 @@ class TestBeokTR9BThermostat(
         self.dps[UNIT_DPS] = "c"
         self.assertEqual(
             self.subject.temperature_unit,
-            TEMP_CELSIUS,
+            UnitOfTemperature.CELSIUS,
         )
         self.assertEqual(self.subject.target_temperature_step, 0.5)
 
         self.dps[UNIT_DPS] = "f"
         self.assertEqual(
             self.subject.temperature_unit,
-            TEMP_FAHRENHEIT,
+            UnitOfTemperature.FAHRENHEIT,
         )
         self.assertEqual(self.subject.target_temperature_step, 1.0)
+
+    def test_precision(self):
+        self.assertEqual(self.subject.precision, PRECISION_TENTHS)
 
     def test_current_temperature(self):
         self.dps[CURRENTTEMP_DPS] = 685

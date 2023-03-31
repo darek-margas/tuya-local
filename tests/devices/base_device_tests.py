@@ -4,18 +4,22 @@ from uuid import uuid4
 
 from homeassistant.helpers.entity import EntityCategory
 
-from custom_components.tuya_local.generic.binary_sensor import TuyaLocalBinarySensor
-from custom_components.tuya_local.generic.climate import TuyaLocalClimate
-from custom_components.tuya_local.generic.cover import TuyaLocalCover
-from custom_components.tuya_local.generic.fan import TuyaLocalFan
-from custom_components.tuya_local.generic.humidifier import TuyaLocalHumidifier
-from custom_components.tuya_local.generic.light import TuyaLocalLight
-from custom_components.tuya_local.generic.lock import TuyaLocalLock
-from custom_components.tuya_local.generic.number import TuyaLocalNumber
-from custom_components.tuya_local.generic.select import TuyaLocalSelect
-from custom_components.tuya_local.generic.sensor import TuyaLocalSensor
-from custom_components.tuya_local.generic.switch import TuyaLocalSwitch
-from custom_components.tuya_local.generic.vacuum import TuyaLocalVacuum
+from custom_components.tuya_local.binary_sensor import TuyaLocalBinarySensor
+from custom_components.tuya_local.button import TuyaLocalButton
+from custom_components.tuya_local.camera import TuyaLocalCamera
+from custom_components.tuya_local.climate import TuyaLocalClimate
+from custom_components.tuya_local.cover import TuyaLocalCover
+from custom_components.tuya_local.fan import TuyaLocalFan
+from custom_components.tuya_local.humidifier import TuyaLocalHumidifier
+from custom_components.tuya_local.light import TuyaLocalLight
+from custom_components.tuya_local.lock import TuyaLocalLock
+from custom_components.tuya_local.number import TuyaLocalNumber
+from custom_components.tuya_local.select import TuyaLocalSelect
+from custom_components.tuya_local.sensor import TuyaLocalSensor
+from custom_components.tuya_local.siren import TuyaLocalSiren
+from custom_components.tuya_local.switch import TuyaLocalSwitch
+from custom_components.tuya_local.vacuum import TuyaLocalVacuum
+from custom_components.tuya_local.water_heater import TuyaLocalWaterHeater
 
 from custom_components.tuya_local.helpers.device_config import (
     TuyaDeviceConfig,
@@ -24,6 +28,8 @@ from custom_components.tuya_local.helpers.device_config import (
 
 DEVICE_TYPES = {
     "binary_sensor": TuyaLocalBinarySensor,
+    "button": TuyaLocalButton,
+    "camera": TuyaLocalCamera,
     "climate": TuyaLocalClimate,
     "cover": TuyaLocalCover,
     "fan": TuyaLocalFan,
@@ -34,7 +40,9 @@ DEVICE_TYPES = {
     "switch": TuyaLocalSwitch,
     "select": TuyaLocalSelect,
     "sensor": TuyaLocalSensor,
+    "siren": TuyaLocalSiren,
     "vacuum": TuyaLocalVacuum,
+    "water_heater": TuyaLocalWaterHeater,
 }
 
 
@@ -60,10 +68,10 @@ class TuyaDeviceTestCase(IsolatedAsyncioTestCase):
         self.entities[self.primary_entity] = self.create_entity(cfg.primary_entity)
 
         self.names = {}
-        self.names[cfg.primary_entity.config_id] = cfg.primary_entity.name(cfg.name)
+        self.names[cfg.primary_entity.config_id] = cfg.primary_entity.name
         for e in cfg.secondary_entities():
             self.entities[e.config_id] = self.create_entity(e)
-            self.names[e.config_id] = e.name(cfg.name)
+            self.names[e.config_id] = e.name
 
     def create_entity(self, config):
         """Create an entity to match the config"""
@@ -87,7 +95,7 @@ class TuyaDeviceTestCase(IsolatedAsyncioTestCase):
 
     def test_should_poll(self):
         for e in self.entities.values():
-            self.assertTrue(e.should_poll)
+            self.assertFalse(e.should_poll)
 
     def test_available(self):
         for e in self.entities.values():
