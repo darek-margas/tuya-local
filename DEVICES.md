@@ -3,6 +3,7 @@
 ### Heaters
 
 - Andersson GSH heater
+- Arlec 2200W and 2400W panel heaters
 - Atomi AT1632 ceramic heater
 - Betterlife BT1500 IR heater
 - BVF CP1 heater
@@ -173,16 +174,17 @@
 
 - Asakuki aroma diffuser with light
 - Etersky aroma diffuser with light
-- YYM-805SW aroma diffuser with light
+- YYM-805SW aroma diffuser with light (also supports GX Aroma diffuser)
 
 ### Kitchen Appliances
 
 - Anko 1.7L smart kettle
 - Setti+ KT950W smart kettle
 - Inkbird iBBQ-4BW cooking probe thermometer
-- Inkbird sous vide cooker
+- Inkbird sous vide cooker (also supports Silvercrest sous vide sticks)
 - Kogan glass 1.7L smart kettle
 - Silvercrest 1.7L smart kettle
+- Ultenic K10 air fryer
 
 ### Smart Meter/Circuit Breaker
 
@@ -214,6 +216,7 @@ the best option.
 - Aubess 1-gang switch with energy monitoring
 - Aubess 2-gang switch
 - Blitzwolf BW-SHP6 PRO smartplug with child lock
+- CBI Astute smart controller
 - DIGOO DG-SP202 dual smartplug with energy monitoring and timers
 - DIGOO DG-SP01 USB smartplug with night light
 - Dual power monitoring smartplug (Geex)
@@ -224,6 +227,7 @@ the best option.
 - Grid Connect double outlet with Energy Monitoring, Master and Individual switches and Child Lock
 - Grid Connect USB charger with power socket
 - Logicom Strippy 4 way power strip with USB
+- Loratap RR400W-V2 relay switch
 - Mirabella Genio smartplug with USB
 - MoesHouse smartplug with RGBW nightlight
 - Qnect QN-WPO3 3 outlet + USB powerstrip with individual timers
@@ -244,7 +248,7 @@ of device.
 - 4 way powerstrip with USB
   _confirmed as working with AOFO ZLD-44EU-W_
 - Generic smartplug with power monitoring (older models)
-  _confirmed as working with Kogan and Blitzwolf single smartplugs (smartplugv1)_
+  _confirmed as working with Kogan, Blitzwolf and Gosund single smartplugs (smartplugv1)_
 - Generic smartplug with power monitoring (newer models)
   _confirmed as working with Kogan single smartplug with USB and Rillpac smartplugs (smartplugv2)_
 - Generic smartplug with power monitoring requiring polling of sensors
@@ -268,6 +272,7 @@ of device.
 
 - Generic dimmable light (2 types, using dp 1,2 and 20,22)
 - Generic RGBCW/RGBWW lightbulb (confirmed with Lijun branded bulb, expected to match others also). Two versions - with and without scene/music modes and timer.
+- Generic dimmable/color temperature adjustable desktop lamp (confirmed with Setti+ SL601)
 - Atomi smart color string light
 - Deta/Arlec motion sensor lights (DET100HA/DET102HA/MAL315HA)
 - Deta 6910HA series2 dimmer switch
@@ -298,6 +303,7 @@ of device.
 - QS-WIFI-C01(BK) curtain module
 - Wistar roller blind controller
 - Zemismart curtain rail
+- Zemismart roller shade
 
 ### Vacuum Cleaners
 
@@ -333,12 +339,15 @@ of device.
 - Catit Pixi smart fountain
 - Catit pet feeder (experimental)
 - Emax EM3378 Weather Station (selling as Hiper P1 and other rebrands)
+- Kogan bidet toilet seat
 - Konlen/Rockson WF96L water level controller
 - Nedis pet feeder
 - Nedis WIFISA10CWT air quality monitor
 - PGST PA-010 indoor temperature and humidity sensor
+- PH-W218 water quality monitor
+- Rojeco PTM-001 pet feeder
 - Qoto 03 smart water valve / sprinkler controller
 - SD123 HPR01 human presence radar
 - Universal remote control (supports sensors only)
-- Yieryi pH meter (also matches unbranded pH-W3988 device)
+- Yieryi water quality monitor (also matches unbranded PH-W3988 device)
 - ZX-G30 alarm system (not as an alarm_control_panel, as individual inputs and sensors)
